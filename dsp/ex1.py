@@ -18,7 +18,7 @@ def d(n):
 
 
 #
-time = list(range(-20, 20))
+time = list(range(-20, 21))
 resultA = [a(n) for n in time]
 resultB = [b(n) for n in time]
 resultC = [c(n) for n in time]
@@ -31,13 +31,13 @@ print(resultC)
 print(resultD)
 
 fig, axs = plt.subplots(2, 2)
-axs[0,0].plot(time, resultA)
+axs[0,0].scatter(time, resultA, s=5)
 axs[0,0].set_title("a")
-axs[0,1].plot(time, resultB)
+axs[0,1].scatter(time, resultB, s=5)
 axs[0,1].set_title("b")
-axs[1,0].plot(time, resultC)
+axs[1,0].scatter(time, resultC, s=5)
 axs[1,0].set_title("c")
-axs[1,1].plot(time, resultD)
+axs[1,1].scatter(time, resultD, s=5)
 axs[1,1].set_title("d")
 
 for ax in axs.flat:

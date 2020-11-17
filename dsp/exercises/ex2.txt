@@ -1,0 +1,65 @@
+1.a) y[n] = x[n] · e^n
+a)
+    LHS
+        x[n] = a*x1[n]+b*x2[n]
+    ->  y[n] = (a*x1[n]+b*x2[n]) * (e^n)
+    ->  y[n] = a*x1[n]*(e^n) + b*x2[n]*(e^n)
+
+    RHS
+    ->  a*x1[n]*(e^n) + b*x2[n]*(e^n)
+    ->  a*x1[n]*(e^n) + b*x2[n]*(e^n)
+
+    left and right side are the same so the system is linear
+
+b)
+    because the multiplication of value e^n depends on time the system is NOT time invariant
+
+c)
+    yes, is causal because the system depends only on the present input value (x[n])
+
+d)
+        |x[n]| <= Bx
+    ->  |y[n]|  = |x[n]*(e^n)| <= |x[n]| * (e^n)
+    ->  |y[n]| <= Bx * (e^n) -> infinity
+     when n grows the output grows without a limit, so the system is NOT stable
+
+1.b) y[n] = x[n] + x[2n]
+a)
+
+    LHS
+        x[n] = a*x1[n]+b*x2[n]
+    ->  y[n] = (a*x1[n]+b*x2[n]) + (a*x1[2n]+b*x2[2n])
+
+    RHS
+    ->  a*(x1[n]+ x2[n]) + b*(x1[n]+ x2[n])
+    ->  a*x1[n]*(e^n) + b*x2[n]*(e^n)
+
+b)
+    because the addition of value x[2n] depends on time the system is NOT time invariant
+
+c)
+    not causal because x[2n] needs one sample from the future
+
+d)
+        |x[n]| <= Bx
+    ->  |y[n]|  = |x[n] + x[2n]| <= |x[n]| + x[2n]
+    ->  |y[n]| <= Bx + x[2n] -> infinity
+     stable?
+
+2.
+h[0] = - ½
+h[1] = 1
+h[2] = - ½
+h[n] = 0, other values of n
+
+2.1
+    y[n] = -1/2*x[n] + x[n-1] - 1/2*x[n-2]
+2.2
+
+2.3
+
+
+
+
+
+
