@@ -1,34 +1,32 @@
 <!DOCTYPE html>
 <html>
 <script>
-    const getBtn = document.getElementById('get-btn');
+const url = "http://localhost:9000/getData"
 
-    const sendHttpRequest = (method, url) => {
-            const promise = new Promise((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open(method, url);
-                    xhr.responseType = 'json';
-                    xhr.onload = () => {
-                            resolve(xhr.response);
-                        }
-                    xhr.send();
-            });
-            return promise;
-        };
-    const getData = () => {
-            sendHttpRequest('GET', 'https://jsonplaceholder.typicode.com/posts').then(responseData => {
-                    console.log(responseData);
-                });
-        };
-    <!-- const sendData = (json) => { -->
-    <!--         sendHttpRequest('POST', url, { -->
-    <!--                 json -->
-    <!--             } -->
-    <!--     }; -->
+function getJsonData(url, callback) {
+    let request = new XMLHttpRequest;
+    request.onreadystatechange = function() {
+        if (request.readyState === 4 && request.status === 200) {
+            return callback(JSON.parse(request.responseText));
+        }
+    }
+    request.open('GET', url);
+    request.send();
+}
+
+function getData() {
+	var json;
+	getJsonData(url, function(data) {
+		json = data;
+		console.log("temperature: " + data.temperature);
+	});
+};
 </script>
 </head>
 
 <body>
-    <button onclick="getData()" type="button"  id="getButton">Get</button>
+    <button onclick="getData()" type="button" id="getButton">
+		Get
+	</button>
 </body>
 </html>
