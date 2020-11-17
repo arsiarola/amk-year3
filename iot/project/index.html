@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<script>
+    const getBtn = document.getElementById('get-btn');
+
+    const sendHttpRequest = (method, url) => {
+            const promise = new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open(method, url);
+                    xhr.responseType = 'json';
+                    xhr.onload = () => {
+                            resolve(xhr.response);
+                        }
+                    xhr.send();
+            });
+            return promise;
+        };
+    const getData = () => {
+            sendHttpRequest('GET', 'https://jsonplaceholder.typicode.com/posts').then(responseData => {
+                    console.log(responseData);
+                });
+        };
+    <!-- const sendData = (json) => { -->
+    <!--         sendHttpRequest('POST', url, { -->
+    <!--                 json -->
+    <!--             } -->
+    <!--     }; -->
+</script>
+</head>
+
+<body>
+    <button onclick="getData()" type="button"  id="getButton">Get</button>
+</body>
+</html>
