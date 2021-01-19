@@ -7,7 +7,7 @@
 #define OPT_AMOUNT 2
 
 int main(int argc, char **argv) {
-    int opt= 0;
+    int opt = 0;
     int *opts[3] = { NULL, NULL, NULL };
 
     static struct option long_options[] = {
@@ -22,24 +22,24 @@ int main(int argc, char **argv) {
     while ((opt = getopt_long_only(argc, argv,"",
                     long_options, &long_index )) != -1) {
         switch (opt) {
-            case 'a': *(opts[OPT_MIN]) = atoi(optarg);
-                      break;
-            case 'b': *(opts[OPT_MAX]) = atoi(optarg);
-                      break;
-            case 'c': *(opts[OPT_AMOUNT]) = atoi(optarg);
-                      break;
+            case 'a':
+            case 'b':
+            case 'c':
+                opts[opt - 'a'] = malloc(sizeof(int));
+                *(opts[opt - 'a']) = atoi(optarg);
+                break;
 
             default: exit(EXIT_FAILURE);
         }
     }
 
-    /* for (int i = 0; i < 3; ++i) { */
-    /*     if (opts[i] == NULL) { */
-    /*         printf ("--%s option must be given a value\n", long_options[i].name); */
-    /*         return 1; */
-    /*     } */
-    /*     printf("%s = %d\n",long_options[i].name, *opts[i]); */
-    /* } */
+    for (int i = 0; i < 3; ++i) {
+        if (opts[i] == NULL) {
+            printf ("--%s option must be given a value\n", long_options[i].name);
+            return 1;
+        }
+        printf("%s = %d\n",long_options[i].name, *opts[i]);
+    }
 
     return 0;
 }
