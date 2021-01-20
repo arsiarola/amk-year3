@@ -1,6 +1,8 @@
 #include <stdio.h>     /* for printf */
 #include <stdlib.h>    /* for exit */
 #include <getopt.h>
+#include <time.h>
+
 
 #include "random.h"
 
@@ -17,6 +19,7 @@ static void free_ptr_array(int **array, int size) {
 }
 
 int main(int argc, char **argv) {
+    srand(time(0));
     int opt = 0;
     int ret = 0;
     int *opts[3] = { NULL, NULL, NULL };
@@ -78,13 +81,20 @@ int main(int argc, char **argv) {
 
     const size_t size = max - min + 1;
     int numbers[size];
+    printf("Array of numbers between min-max: \n");
     for (int i = min; i <= max; ++i) {
         numbers[i - min] = i;
-        printf("%d = %d\n", i - min, i);
+        printf("%d: %d\n", i - min, i);
     }
+
     shuffle(numbers, size);
-    printf("Random unique numbers: \n");
+    printf("Array after shuffle: \n");
     for (int i = 0; i < size; ++i) {
+        printf("%d: %d\n", i, numbers[i]);
+    }
+
+    printf("Your random unique numbers: \n");
+    for (int i = 0; i < amount; ++i) {
         printf("%d\n", numbers[i]);
     }
 
