@@ -2,12 +2,23 @@
 #include <stdlib.h>    /* for exit */
 #include <getopt.h>
 
+#include "random.h"
+
 #define OPT_MIN 0
 #define OPT_MAX 1
 #define OPT_AMOUNT 2
 
+static void free_ptr_array(int **array, int size) {
+    for (int i = 0; i < size; ++i) {
+        if (array[i] != NULL) {
+            free (array[i]);
+        }
+    }
+}
+
 int main(int argc, char **argv) {
     int opt = 0;
+    int ret = 0;
     int *opts[3] = { NULL, NULL, NULL };
 
     static struct option long_options[] = {
@@ -35,11 +46,48 @@ int main(int argc, char **argv) {
 
     for (int i = 0; i < 3; ++i) {
         if (opts[i] == NULL) {
-            printf ("--%s option must be given a value\n", long_options[i].name);
-            return 1;
+            printf ("--%s option wasnt given, input the value: ", long_options[i].name);
+            int value;
+            while (scanf("%d", &value) != 1) {
+                printf("Error in converting the value, input value for --%s again: ", long_options[i].name);
+                scanf("%*s");
+            }
+            opts[i] = malloc(sizeof(int));
+            *(opts[i]) = value;
         }
         printf("%s = %d\n",long_options[i].name, *opts[i]);
     }
 
+    const int min    = *opts[OPT_MIN];
+    const int max    = *opts[OPT_MAX];
+    const int amount = *opts[OPT_AMOUNT];
+    if (max < min) {
+        printf("Maximum cannot be lower than minimum, exiting\n");
+        ret = 1;
+    }
+
+    if (amount <= 0) {
+        ret = 1;
+        printf("Amount has to be greater than 0, exiting\n");
+    }
+
+    if (ret != 0) {
+        free_ptr_array(opts, 3);
+        return ret;
+    }
+
+    const size_t size = max - min + 1;
+    int numbers[size];
+    for (int i = min; i <= max; ++i) {
+        numbers[i - min] = i;
+        printf("%d = %d\n", i - min, i);
+    }
+    shuffle(numbers, size);
+    printf("Random unique numbers: \n");
+    for (int i = 0; i < size; ++i) {
+        printf("%d\n", numbers[i]);
+    }
+
+    free_ptr_array(opts, 3);
     return 0;
 }
