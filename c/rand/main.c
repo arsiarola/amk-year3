@@ -61,9 +61,10 @@ int main(int argc, char **argv) {
         printf("%s = %d\n",long_options[i].name, *opts[i]);
     }
 
-    const int min    = *opts[OPT_MIN];
-    const int max    = *opts[OPT_MAX];
-    const int amount = *opts[OPT_AMOUNT];
+    int min    = *opts[OPT_MIN];
+    int max    = *opts[OPT_MAX];
+    int amount = *opts[OPT_AMOUNT];
+
     if (max < min) {
         printf("Maximum cannot be lower than minimum, exiting\n");
         ret = 1;
@@ -79,7 +80,12 @@ int main(int argc, char **argv) {
         return ret;
     }
 
-    const size_t size = max - min + 1;
+    const int size = max - min + 1;
+    if (amount > size) {
+        amount = size;
+        printf("The amount of random unique numbers cannot be more than (max - min + 1)\n"
+                "Amount changed to %d\n", amount);
+    }
     int numbers[size];
     printf("Array of numbers between min-max: \n");
     for (int i = min; i <= max; ++i) {
