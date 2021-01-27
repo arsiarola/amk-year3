@@ -90,18 +90,18 @@ int main(int argc, char **argv) {
     printf("Array of numbers between min-max: \n");
     for (int i = min; i <= max; ++i) {
         numbers[i - min] = i;
-        printf("%d: %d\n", i - min, i);
+        /* printf("%d: %d\n", i - min, i); */
     }
 
     shuffle(numbers, size);
     printf("Array after shuffle: \n");
     for (int i = 0; i < size; ++i) {
-        printf("%d: %d\n", i, numbers[i]);
+        /* printf("%d: %d\n", i, numbers[i]); */
     }
 
     printf("Your random unique numbers: \n");
     for (int i = 0; i < amount; ++i) {
-        printf("%d\n", numbers[i]);
+        /* printf("%d\n", numbers[i]); */
     }
 
     free_ptr_array(opts, 3);
