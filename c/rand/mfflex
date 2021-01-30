@@ -7,7 +7,7 @@ echo "gcc not available, using cc"
 CC := cc
 endif
 
-CFLAGS := --Wall -Wextra -Wfatal-errors -Wpedantic
+CFLAGS := -Wall -Wextra -Wfatal-errors -Wpedantic
 
 SRCDIR := src
 OBJDIR := obj
@@ -28,10 +28,10 @@ all : $(EXE)
 $(EXE) : $(OBJ) | $(EXEDIR)
 	    $(CC)  $^  -o $@
 
-$(OBJ) : $(SRC) | $(OBJDIR)
+$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
 	    $(CC) $(CFLAGS) -c $< -o $@
 
-$(EXEDIR) $(OBJ_DIR):
+$(EXEDIR) $(OBJDIR):
 	    mkdir -p $@
 
 clean:
