@@ -7,7 +7,7 @@
    Only effective if N is much smaller than RAND_MAX;
    if this may not be the case, use a better random
    number generator. */
-void shuffle(int *array, int n) {
+void shuffle(int64_t *array, int n) {
     if (n > 1)
     {
         int i;

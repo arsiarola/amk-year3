@@ -10,6 +10,13 @@
 #define OPT_MAX 1
 #define OPT_AMOUNT 2
 
+#define PRINT_OUTPUT 0
+#if PRINT_OUTPUT == 1
+    #define print(fmt, ...) (printf((fmt), __VA_ARGS__))
+#else
+    #define print(fmt, ...)
+#endif
+
 static void free_ptr_array(int **array, int size) {
     for (int i = 0; i < size; ++i) {
         if (array[i] != NULL) {
@@ -87,21 +94,21 @@ int main(int argc, char **argv) {
                 "Amount changed to %d\n", amount);
     }
     int numbers[size];
-    printf("Array of numbers between min-max: \n");
+    print("Array of numbers between min-max: \n");
     for (int i = min; i <= max; ++i) {
         numbers[i - min] = i;
-        /* printf("%d: %d\n", i - min, i); */
+        print("%d: %d\n", i - min, i);
     }
 
     shuffle(numbers, size);
-    printf("Array after shuffle: \n");
+    print("Array after shuffle: \n");
     for (int i = 0; i < size; ++i) {
-        /* printf("%d: %d\n", i, numbers[i]); */
+        print("%d: %d\n", i, numbers[i]);
     }
 
-    printf("Your random unique numbers: \n");
+    print("Your random unique numbers: \n");
     for (int i = 0; i < amount; ++i) {
-        /* printf("%d\n", numbers[i]); */
+        print("%d\n", numbers[i]);
     }
 
     free_ptr_array(opts, 3);

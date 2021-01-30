@@ -1,0 +1,12 @@
+edit : main.o random.o
+	gcc -o edit main.o random.o
+
+main.o : main.c
+	gcc -c main.c
+
+random.o : random.c random.h
+	gcc -c random.c
+
+.PHONY: clean
+clean:
+	rm edit main.o random.o
