@@ -9,31 +9,35 @@ endif
 
 CFLAGS := -Wall -Wextra -Wfatal-errors -Wpedantic
 
-SRCDIR := src
-OBJDIR := obj
+SRCDIR := ./src
+OBJDIR := ./obj
 EXEDIR := .
 
 SRC := $(wildcard $(SRCDIR)/*.c)
 OBJ := $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+DEP := $(OBJ:.o=.d)
 EXE := $(EXEDIR)/a.out
-
-test:
-	echo $(SRC)
-	echo $(OBJ)
 
 .PHONY: clean all
 
 all : $(EXE)
 
 $(EXE) : $(OBJ) | $(EXEDIR)
-	    $(CC)  $^  -o $@
+	    $(CC)  $^ -o $@
 
-$(OBJDIR)/%.o: $(SRCDIR)/%.c | $(OBJDIR)
-	    $(CC) $(CFLAGS) -c $< -o $@
+$(OBJDIR)/%.o : $(SRCDIR)/%.c  | $(OBJDIR)
+	    $(CC) $(CFLAGS) -MMD -MP -MD -c $< -o $@
 
-$(EXEDIR) $(OBJDIR):
+$(EXEDIR) $(OBJDIR) :
 	    mkdir -p $@
 
+-include $(DEP)
+
 clean:
-	@$(RM) -rv $(EXEDIR) $(OBJDIR)
+	@$(RM) $(EXE) $(OBJ) $(DEP)
+
+test:
+	echo $(SRC)
+	echo $(OBJ)
+
 
