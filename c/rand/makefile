@@ -15,7 +15,7 @@ EXEDIR := .
 
 SRC := $(wildcard $(SRCDIR)/*.c)
 OBJ := $(SRC:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
-EXE := $(EXEDIR)/program
+EXE := $(EXEDIR)/a.out
 
 test:
 	echo $(SRC)
