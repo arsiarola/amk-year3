@@ -1,12 +1,19 @@
-edit : main.o random.o
-	gcc -o edit main.o random.o
+# Make doesn't think clean and all are files, but rather just commands.
+.PHONY: clean all
 
-main.o : main.c
+# "all" command that requires two object files
+# These object files are defined below, since make knows to look
+# for them
+all : main.o random.o
+	gcc -o a.out main.o random.o
+
+# Both main.c and random.c include random.h so have them in the prerequisites
+main.o : main.c random.h
 	gcc -c main.c
 
 random.o : random.c random.h
 	gcc -c random.c
 
-.PHONY: clean
+# "clean" command that removes all the object files and the executable file
 clean:
-	rm edit main.o random.o
+	rm a.out main.o random.o
