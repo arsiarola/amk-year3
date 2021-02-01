@@ -31,15 +31,15 @@ all : $(EXE)
 
 # pipe symbol means exedir will be created before any object files are built
 # and also the timestamp of the exedir doesn't affect objcet files being rebuilt
-# $^ means Put everything that the "prequsites" contain one by one
+# $^ means Put everything that the "prequsites" contain
 # $@ means Put all the "targets"
 $(EXE) : $(OBJ) | $(EXEDIR)
 	    $(CC)  $^ -o $@
 
 # Use also flag -MD to generate .d files, so we can have recompilation of a file
 # even if only the header file is changed
-# $< basically just prints everything that is in the prequisites
-$(OBJ) : $(SRC)  | $(OBJDIR)
+
+$(OBJDIR)/%.o : $(SRCDIR)/%.c  | $(OBJDIR)
 	    $(CC) $(CFLAGS) -MD -MP -c $< -o $@
 
 $(EXEDIR) $(OBJDIR) :
