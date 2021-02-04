@@ -2,6 +2,9 @@
 # the actual output of the command will be assigned to variable GCC
 # If no path is found nothing will be returned meaning our variable GCC will not be defined,
 # so we can do easy ifdef check and set our CC variable depending on the case
+
+
+ifndef CC
 GCC := $(shell command -v gcc 2>/dev/null)
 ifdef GCC
 echo "gcc path found: $(GCC)"
@@ -10,9 +13,10 @@ else
 echo "gcc not available, using cc"
 CC := cc
 endif
+endif
 
 # General variables for flags and directories
-CFLAGS := -Wall -Wextra -Wfatal-errors -Wpedantic
+CFLAGS := -Wall -Wextra -Wfatal-errors -Wpedantic -std=c99
 SRCDIR := ./src
 OBJDIR := ./obj
 EXEDIR := .
