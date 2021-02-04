@@ -1,6 +1,5 @@
 *.o
 *.d
-obj
 *.out
 *.swp
 *.swo
