@@ -3,8 +3,13 @@
 # If no path is found nothing will be returned meaning our variable GCC will not be defined,
 # so we can do easy ifdef check and set our CC variable depending on the case
 
+destPath ?= ~/
+destIP   ?= 192.168.0.17
+destUser ?= arsia
 
-ifndef CC
+ifdef compiler
+CC := $(compiler)
+else
 GCC := $(shell command -v gcc 2>/dev/null)
 ifdef GCC
 echo "gcc path found: $(GCC)"
@@ -12,8 +17,8 @@ CC := gcc
 else
 echo "gcc not available, using cc"
 CC := cc
-endif
-endif
+endif # GCC
+endif # compiler
 
 # General variables for flags and directories
 CFLAGS := -Wall -Wextra -Wfatal-errors -Wpedantic -std=c99
@@ -50,6 +55,19 @@ $(EXEDIR) $(OBJDIR) :
 	    mkdir -p $@
 
 -include $(DEP)
+
+# arguments: executable, destination(user, IP, path)
+define copyExe
+	if[ -f $(EXE) ]; then
+		scp "$(1) $(2)@$(3):$(4)
+	else
+		echo "executable not found"
+	fi
+endef
+
+scp : $(EXE)
+	$(call copyExe, $(EXE), $(destUser), $(destIP), $(destPath))
+
 
 # first remove all the wanted files, then try to remove that directory,
 # so if the directory contains something extra, then the directory and that extra
