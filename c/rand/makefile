@@ -33,9 +33,6 @@ DEP := $(OBJ:.o=.d)                       # dependency files (.d), contains info
                                           # of which #includes the c files contain
 EXE := $(EXEDIR)/a.out                    # executable
 
-# Make doesn't think clean and all are files, but rather just commands.
-.PHONY: clean all
-
 all : $(EXE)
 
 # pipe symbol means exedir will be created before any object files are built
@@ -56,17 +53,8 @@ $(EXEDIR) $(OBJDIR) :
 
 -include $(DEP)
 
-# arguments: executable, destination(user, IP, path)
-define copyExe
-	if[ -f $(EXE) ]; then
-		scp "$(1) $(2)@$(3):$(4)
-	else
-		echo "executable not found"
-	fi
-endef
-
 scp : $(EXE)
-	$(call copyExe, $(EXE), $(destUser), $(destIP), $(destPath))
+	scp $(EXE) $(destUser)@$(destIP):$(destPath)
 
 
 # first remove all the wanted files, then try to remove that directory,
@@ -75,3 +63,7 @@ scp : $(EXE)
 clean:
 	@$(RM) $(EXE) $(OBJ) $(DEP)
 	@$(RM) -d $(OBJDIR)
+
+# Make doesn't think clean and all are files, but rather just commands.
+.PHONY: clean all scp
+
