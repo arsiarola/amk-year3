@@ -13,7 +13,7 @@ endif # compiler
 
 # General variables for flags and directories
 CFLAGS :=
-LFLAGS := -lwiringPi
+LFLAGS := -lwiringPi -lwiringPiDev
 SRCDIR := ./src
 OBJDIR := ./obj
 EXEDIR := .
