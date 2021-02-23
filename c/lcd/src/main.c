@@ -1,8 +1,8 @@
 #define USE_OWN_LCD_LIB 1
 #if USE_OWN_LCD_LIB
-    #include "lcd.h"
+#include "lcd.h"
 #else
-    #include <lcd.h>
+#include <lcd.h>
 #endif
 
 #include <wiringPi.h>
@@ -25,58 +25,47 @@
 #define D6 23
 #define D7 24
 
+void initPins();
 
 int main() {
-	int fd;
-	struct ifreq ifr;
-
-	fd = socket(AF_INET, SOCK_DGRAM, 0);
-
-	/* I want to get an IPv4 IP address */
-	ifr.ifr_addr.sa_family = AF_INET;
-
-	/* I want IP address attached to "wlan0" */
-	strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
-
-	ioctl(fd, SIOCGIFADDR, &ifr);
-	close(fd);
 
     wiringPiSetup();
- digitalWrite(RS, 0);
- digitalWrite(EN, 0);
- digitalWrite(D4, 0);
- digitalWrite(D5, 0);
- digitalWrite(D6, 0);
- digitalWrite(D7, 0);
+    initPins();
 
- pinMode(RS, OUTPUT);
- pinMode(EN, OUTPUT);
- pinMode(D4, OUTPUT);
- pinMode(D5, OUTPUT);
- pinMode(D6, OUTPUT);
- pinMode(D7, OUTPUT);
-   delay (35) ; // mS
+    lcdCreate(RS, EN, D4, D5, D6, D7);
 
-	lcdCreate(RS, EN, D4, D5, D6, D7);
     lcdClear();
-	lcdSetCursor(0, 0);
-    lcdHome();
-	lcdPrint("Getting");
-	lcdSetCursor(0, 1);
-	lcdPrint("IP address");
-    /* int lcd; */
-    /* lcd = lcdInit (2, 16, 4, RS, EN, D4, D5, D6, D7, 0, 0, 0, 0); */
-    /* delay(2); */
-    /* lcdClear(lcd); */
-    /* lcdPosition(lcd, 3, 1); */
-    /* lcdPuts(lcd, "Hello, world!"); */
+    lcdPrint("Getting");
+    lcdSetCursor(0, 1);
+    lcdPrint("IP address");
     delay(2000);
-	/* display result */
-    char ipAddress[16];
-	snprintf(ipAddress, 16, "%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
-    printf("%s\n", ipAddress);
-    /* lcdPrintf(lcd, "%s\n", ipAddress); */
-	lcdClear();
-	lcdPrint("%s\n", ipAddress);
-	return 0;
+
+    int fd;
+    struct ifreq ifr;
+    while (1) {
+        fd = socket(AF_INET, SOCK_DGRAM, 0);
+        ifr.ifr_addr.sa_family = AF_INET; // IPv4 IP address
+        strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
+        ioctl(fd, SIOCGIFADDR, &ifr);
+        close(fd);
+
+        char ipAddress[16];
+        snprintf(ipAddress, 16, "%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
+        printf("%s\n", ipAddress);
+        lcdClear();
+        lcdPrint("%s\n", ipAddress);
+        delay(2000);
+    }
+    return 0;
+}
+
+void initPins() {
+    digitalWrite(RS, 0); pinMode(RS, OUTPUT);
+    digitalWrite(EN, 0); pinMode(EN, OUTPUT);
+    digitalWrite(D4, 0); pinMode(D4, OUTPUT);
+    digitalWrite(D5, 0); pinMode(D5, OUTPUT);
+    digitalWrite(D6, 0); pinMode(D6, OUTPUT);
+    digitalWrite(D7, 0); pinMode(D7, OUTPUT);
+    delay (35) ; // mS
+
 }
