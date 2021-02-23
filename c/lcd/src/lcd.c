@@ -42,13 +42,7 @@ void lcdCreate(uint8_t rs,  uint8_t enable,
 
 	_displayfunction = LCD_4BITMODE | LCD_1LINE | LCD_5x8DOTS;
 
-	/* lcdBegin(16, 2, LCD_5x8DOTS); // default to 16x2 display */
-	delayMicroseconds(15000);          /* 15 ms, Power-On delay*/
-    lcdCommand(0x02);    /*send for initialization of LCD with nibble method */
-    lcdCommand(0x28);    /*use 2 line and initialize 5*7 matrix in (4-bit mode)*/
-    lcdCommand(0x01);    /*clear display screen*/
-    lcdCommand(0x0c);    /*display on cursor off*/
-    lcdCommand(0x06);    /*increment cursor (shift cursor to right)*/
+	lcdBegin(16, 2, LCD_5x8DOTS); // default to 16x2 display
 }
 
 void lcdBegin(uint8_t cols, uint8_t lines, uint8_t dotsize)
@@ -60,9 +54,9 @@ void lcdBegin(uint8_t cols, uint8_t lines, uint8_t dotsize)
 	_currline = 0;
 
 	// for some 1 line displays you can select a 10 pixel high font
-	if ((dotsize != 0) && (lines == 1)) {
-		_displayfunction |= LCD_5x10DOTS;
-	}
+	/* if ((dotsize != 0) && (lines == 1)) { */
+	/* 	_displayfunction |= LCD_5x10DOTS; */
+	/* } */
 
 	// SEE PAGE 45/46 FOR INITIALIZATION SPECIFICATION!
 	// according to datasheet, we need at least 40ms after power rises above 2.7V
@@ -111,10 +105,12 @@ void lcdBegin(uint8_t cols, uint8_t lines, uint8_t dotsize)
 
 	// finally, set # lines, font size, etc.
 	lcdCommand(LCD_FUNCTIONSET | _displayfunction);
+	delayMicroseconds(50);
 
 	// turn the display on with no cursor or blinking default
 	_displaycontrol = LCD_DISPLAYON | LCD_CURSOROFF | LCD_BLINKOFF;
 	lcdDisplay();
+	delayMicroseconds(50);
 
 	// clear it off
 	lcdClear();
@@ -123,6 +119,7 @@ void lcdBegin(uint8_t cols, uint8_t lines, uint8_t dotsize)
 	_displaymode = LCD_ENTRYLEFT | LCD_ENTRYSHIFTDECREMENT;
 	// set the entry mode
 	lcdCommand(LCD_ENTRYMODESET | _displaymode);
+	delayMicroseconds(50);
 
 }
 

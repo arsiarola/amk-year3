@@ -39,22 +39,43 @@ int main() {
 	strncpy(ifr.ifr_name, "wlan0", IFNAMSIZ-1);
 
 	ioctl(fd, SIOCGIFADDR, &ifr);
-
 	close(fd);
 
-    wiringPiSetup () ;
+    wiringPiSetup();
+ digitalWrite(RS, 0);
+ digitalWrite(EN, 0);
+ digitalWrite(D4, 0);
+ digitalWrite(D5, 0);
+ digitalWrite(D6, 0);
+ digitalWrite(D7, 0);
+
+ pinMode(RS, OUTPUT);
+ pinMode(EN, OUTPUT);
+ pinMode(D4, OUTPUT);
+ pinMode(D5, OUTPUT);
+ pinMode(D6, OUTPUT);
+ pinMode(D7, OUTPUT);
+   delay (35) ; // mS
 
 	lcdCreate(RS, EN, D4, D5, D6, D7);
     lcdClear();
 	lcdSetCursor(0, 0);
+    lcdHome();
 	lcdPrint("Getting");
 	lcdSetCursor(0, 1);
 	lcdPrint("IP address");
+    /* int lcd; */
+    /* lcd = lcdInit (2, 16, 4, RS, EN, D4, D5, D6, D7, 0, 0, 0, 0); */
+    /* delay(2); */
+    /* lcdClear(lcd); */
+    /* lcdPosition(lcd, 3, 1); */
+    /* lcdPuts(lcd, "Hello, world!"); */
     delay(2000);
 	/* display result */
     char ipAddress[16];
 	snprintf(ipAddress, 16, "%s", inet_ntoa(((struct sockaddr_in *)&ifr.ifr_addr)->sin_addr));
     printf("%s\n", ipAddress);
+    /* lcdPrintf(lcd, "%s\n", ipAddress); */
 	lcdClear();
 	lcdPrint("%s\n", ipAddress);
 	return 0;

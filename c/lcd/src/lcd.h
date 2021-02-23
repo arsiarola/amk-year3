@@ -86,4 +86,4 @@ uint8_t _initialized;
 
 uint8_t _numlines,_currline;
 
-#endif
+#endif //lcd_h
