@@ -29,22 +29,24 @@ int drawBitMap(const uint8_t* bitmap, size_t width, size_t height, uint8_t curso
         }
     }
 
+    int index = 0;
     for (int y = 0; y < requiredHeight; ++y) {
         for (int x = 0; x < requiredWidth; ++x) {
+            index = x + y*requiredWidth;
             for (int j = 0; j < 8; ++j) {
                 for (int i = 0; i < 5; ++i) {
                     if ((y*width + x*5 + j*width + i) < width*height) {
                         printf("%d,", bitmap[y*width*8 + x*5 + j*width + i]? 1 : 0);
-                        chars[x+y][j] |= (bitmap[y*width*8 + x*5 + j*width + i] ? 1 : 0) << (5-i);
+                        chars[index][j] |= (bitmap[y*width*8 + x*5 + j*width + i] ? 1 : 0) << (4-i);
                     }
                 }
                 printf("\n");
             }
             printf("\n");
             printf("\n");
-            lcdCreateChar((uint8_t *) chars[x+y], x+y);
+            lcdCreateChar((uint8_t *) chars[index], index);
             lcdSetCursor(curX++, curY);
-            lcdSend(x+y, 1); // 1 means HIGH
+            lcdSend(index, 1); // 1 means HIGH
         }
         ++curY;
         curX = cursorX;
