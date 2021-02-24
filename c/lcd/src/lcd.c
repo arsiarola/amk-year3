@@ -6,7 +6,6 @@
 #define LOW 0
 #define HIGH 1
 
-
 // When the display powers up, it is configured as follows:
 //
 // 1. Display clear
@@ -273,4 +272,12 @@ void lcdWrite4bits(uint8_t value)
 
 size_t lcdWrite(uint8_t pin, uint8_t value) {
 	digitalWrite(pin, value);
+}
+
+void lcdCreateChar(uint8_t charmap[], uint8_t reg) {
+    reg &= 0x7; // we only have 8 locations 0-7
+    lcdCommand(LCD_SETCGRAMADDR | (reg << 3));
+    for (int i=0; i<8; i++) {
+        lcdSend(charmap[i], HIGH);
+    }
 }

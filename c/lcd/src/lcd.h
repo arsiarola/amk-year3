@@ -1,5 +1,5 @@
-#ifndef lcd_h
-#define lcd_h
+#ifndef LCD_H
+#define LCD_H
 
 #include <stdint.h>
 #include <stdio.h>
@@ -64,7 +64,7 @@ void lcdRightToLeft();
 void lcdAutoscroll();
 void lcdNoAutoscroll();
 
-void lcdCreateChar(uint8_t, uint8_t[]);
+void lcdCreateChar(uint8_t charmap[], uint8_t reg);
 void lcdSetCursor(uint8_t, uint8_t);
 size_t lcdWrite(uint8_t pin, uint8_t value);
 void lcdCommand(uint8_t value);
@@ -86,4 +86,4 @@ uint8_t _initialized;
 
 uint8_t _numlines,_currline;
 
-#endif //lcd_h
+#endif //LCD_H
