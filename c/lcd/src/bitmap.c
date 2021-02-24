@@ -18,44 +18,44 @@ int drawBitMap(const uint8_t* bitmap, size_t width, size_t height, uint8_t curso
     }
     uint8_t curX = cursorX;
     uint8_t curY = cursorY;
-    size_t requiredWidth   = getRequiredWidth(width);
-    size_t requiredHeight  = getRequiredHeight(height);
-
-    printf("requiredHeight = %u\n", requiredHeight);
-    printf("requiredWidth = %u\n", requiredWidth);
-
-    int charCount = requiredWidth * requiredHeight;
-    // we have only 8 register to use for creating custom characters
-    if (charCount > 8) {
-        return -1;
-    }
-
-
-    //TODO add checking for out of bounds if we want that?
-    /* if (curX * details.fontWidth + requiredWidth > details.fontWidth * */
-
-    clearCustomChars();
 
     bitmapTo2dArray(bitmap, width, height, bmChars);
 
-    for (int y = 0; y < requiredHeight; ++y) {
-        for (int x = 0; x < requiredWidth; ++x) {
-            int index = x + y*requiredWidth;
-            int reg = index + startRegister;
-            // since index just gets bigger, if it goes over 7 we know that
-            // we cant dont have anymore space in the registers
-            if (reg > 7) {
-                break;
-            }
-            lcdCreateChar((uint8_t *) bmChars[index], reg);
-            lcdSetCursor(curX++, curY);
-            lcdSend(index, 1); // 1 means HIGH
+    size_t requiredWidth   = getRequiredWidth(width);
+    size_t requiredHeight  = getRequiredHeight(height);
+    uint8_t index = 0;
+    uint8_t reg = startRegister;
+    for (int y = 0; y < requiredHeight; ++y){ for (int x = 0; x < requiredWidth; ++x) {
+        if (reg > 7 || index > 7) {
+            break;
         }
-        ++curY;
-        curX = cursorX;
+
+        int total = 0;
+        for (int i = 0; i < 8; ++i) {
+            total += bmChars[index][i];
+        }
+        if (total == 0) {
+            lcdSetCursor(curX, curY);
+            lcdPutChar('@');
+        }
+        else {
+            lcdCreateChar((uint8_t *) bmChars[index], reg);
+            lcdSetCursor(curX, curY);
+            lcdPutChar(reg);
+            printf("reg = %d\n", reg);
+            ++reg;
+        }
+        ++index;
+        ++curX;
+    }
+    ++curY;
+    curX = cursorX;
     }
     bmRequiredWidth   = requiredWidth;
     bmRequiredHeight   = requiredHeight;
+    bmCurX = cursorX;
+    bmCurY = cursorY;
+
 }
 
 void bmClearCoordinates(uint8_t startX,uint8_t startY, uint8_t endX,uint8_t endY) {
@@ -71,14 +71,12 @@ void bmClearCoordinates(uint8_t startX,uint8_t startY, uint8_t endX,uint8_t endY
     }
     for (int i = 0; i < endY - startY; ++i) {
         lcdSetCursor(startX, startY + i);
-        lcdPrint("%*s", endX - startX, "");
+        lcdPrintf("%*s", endX - startX, "");
     }
 }
 
 void clearCustomChars() {
-    for (int j = 0; j < 8; ++j) {
-        for (int i = 0; i < 8; ++i) {
-            bmCharRegisters[j][i] = 0;
-        }
-    }
+    for (int j = 0; j < 8; ++j) { for (int i = 0; i < 8; ++i) {
+        bmCharRegisters[j][i] = 0;
+    } }
 }

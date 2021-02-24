@@ -137,7 +137,7 @@ void lcdHome()
 
 
 // printf syntax like lcd printing
-void lcdPrint(const char *format, ...)
+void lcdPrintf(const char *format, ...)
 {
 	char buffer [32];
 	va_list argptr;
@@ -147,6 +147,16 @@ void lcdPrint(const char *format, ...)
 	for (int i = 0; buffer[i] != '\0'; ++i) {
 		lcdSend(buffer[i], HIGH);
 	}
+}
+
+void lcdPuts(const char* str) {
+	while(*str) {
+		lcdSend(*str++, HIGH);
+	}
+}
+
+void lcdPutChar(const char c) {
+	lcdSend(c, HIGH);
 }
 
 void lcdSetCursor(uint8_t col, uint8_t row)

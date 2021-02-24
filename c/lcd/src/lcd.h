@@ -68,7 +68,9 @@ void lcdCreateChar(uint8_t charmap[], uint8_t reg);
 void lcdSetCursor(uint8_t, uint8_t);
 size_t lcdWrite(uint8_t pin, uint8_t value);
 void lcdCommand(uint8_t value);
-void lcdPrint(const char *format, ...);
+void lcdPrintf(const char *format, ...);
+void lcdPuts(const char* str);
+void lcdPutChar(const char c);
 
 void lcdSend(uint8_t, uint8_t);
 void lcdWrite4bits(uint8_t);
