@@ -36,7 +36,7 @@ int drawBitMap(const uint8_t* bitmap, size_t width, size_t height, uint8_t curso
         }
         if (total == 0) {
             lcdSetCursor(curX, curY);
-            lcdPutChar('@');
+            lcdPutChar(' ');
         }
         else {
             lcdCreateChar((uint8_t *) bmChars[index], reg);
