@@ -10,9 +10,9 @@
 #define OPT_MAX 1
 #define OPT_AMOUNT 2
 
-#define PRINT_OUTPUT 0
+#define PRINT_OUTPUT 1
 #if PRINT_OUTPUT == 1
-    #define print(fmt, ...) (printf((fmt), __VA_ARGS__))
+    #define print(fmt, ...) (printf((fmt), ##__VA_ARGS__))
 #else
     #define print(fmt, ...)
 #endif

@@ -21,7 +21,7 @@ endif # GCC
 endif # compiler
 
 # General variables for flags and directories
-CFLAGS := -Wall -Wextra -Wfatal-errors -Wpedantic -std=c99
+CFLAGS := -Wall -std=c99
 SRCDIR := ./src
 OBJDIR := ./obj
 EXEDIR := .
