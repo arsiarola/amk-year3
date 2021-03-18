@@ -1,0 +1,12 @@
+let s:formatprg_for_filetype = {
+            \ "c" : {"cmd" : "astyle",
+            \        "opt" : " --indent=spaces=8 --indent-preproc-block --indent-preproc-define --max-continuation-indent=80 --pad-header -O"
+            \       },
+            \}
+for [ft, arr] in items(s:formatprg_for_filetype)
+    echo ft .  ':' . arr['cmd'] . ':' . arr['opt']
+    if has(arr.cmd)
+        execute "autocmd filetype ".ft." let &l:formatprg=\"". arr['cmd']. arr['opt'] . "\" | setlocal formatexpr="
+    endif
+endfor
+
