@@ -34,18 +34,10 @@ Get random names
 
 Get address file content
     @{names} =    Get random names    5
-    ${name} =     Get selections from user    Choose a name    @{names}
+    ${name} =     Get selection from user    Choose a name    @{names}
     Log to console    user selected: ${name}
-    ${name} =     Convert to string    ${name}
-    # Strip away characters [']
-    ${name} =    Remove string using regexp    ${name}   ['\[\]]*
-    # Another more readable option to strip chars:
-    # ${name} =    Remove string    ${name}   [
-    # ${name} =    Remove string    ${name}   '
-    # ${name} =    Remove string    ${name}   ]
-    Log to console    stripped name: ${name}\n
     ${address} =    FakerLibrary.Address
-    ${address_lines} =    Split string    ${address}    ${\n}
+    ${address_lines} =    Split string    ${address}    \n
     ${file_content} =    Format String    {a}\n{b}\n{c}    a=${name}    b=${address_lines}[0]    c=${address_lines}[1]
     [Return]    ${file_content}
 
