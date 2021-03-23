@@ -12,13 +12,17 @@ ${FNAME} =    test
 *** Keywords ***
 Remove existing address file
     [Arguments]    ${fname}
-    File should exist    ${fname}
-    ${file} =    Get file    ${fname}
-    ${line0} =    Get line    ${file}    0
-    Log    ${line0}
-    Remove File    ${fname}
-    Wait Until Removed    ${fname}
-    File should not exist    ${fname}
+    ${exists} =    Run Keyword And Return Status    File should exist    ${fname}
+    IF    ${exists} == 1
+        ${file} =    Get file    ${fname}
+        ${line0} =    Get line    ${file}    0
+        Log    ${line0}    console=True
+        Remove File    ${fname}
+        Wait Until Removed    ${fname}
+        File should not exist    ${fname}
+    ELSE
+        Log    Cannot remove file, ${fname} doesn't exist     console=True
+    END
 
 Get random names
     [Arguments]    ${count}
@@ -26,14 +30,13 @@ Get random names
     ${names} =    Create list
     FOR    ${i}    IN RANGE    0    ${count}
         ${name} =    FakerLibrary.Name
-        Log to console    ${name} \n
         Append to List    ${names}    ${name}
     END
-    Log to console   ${names}
     Return from keyword    ${names}
 
 Get address file content
-    @{names} =    Get random names    5
+    [Arguments]    ${count}
+    @{names} =    Get random names    ${count}
     ${name} =     Get selection from user    Choose a name    @{names}
     Log to console    user selected: ${name}
     ${address} =    FakerLibrary.Address
@@ -47,8 +50,7 @@ Remove address file
     Remove existing address file    ${FNAME}
 
 Create address file
-    ${file_content} =    Get address file content
-    Log to console    ${file_content}
+    ${file_content} =    Get address file content    5
     Create file    ${FNAME}    ${file_content}
     Wait until created    ${FNAME}
     File should exist    ${FNAME}

@@ -8,17 +8,16 @@ main(int argc, char *argv[]) {
         int opt;
         // Reorder arguments, executable name will be first
         // Actual argument will be last, everything else in between
-        while ((opt = getopt(argc, argv, "a:s:m:d:")) != -1) {
+        while ((opt = getopt(argc, argv, "a:s:m:d:")) > 0) {
                 switch (opt) {
                 case '?':
                         fprintf(stderr, "Expected argument after options\n");
                         exit(EXIT_FAILURE);
-                        break;
                 }
         }
-
+		
+        int result = atoi(argv[optind]);
         optind = 1; // reset index back to 1 so we can loop again
-        int result = atoi(argv[argc - 1]);
         while ((opt = getopt(argc, argv, "a:s:m:d:")) != -1) {
                 int value = atoi(optarg);
                 switch (opt) {
@@ -38,7 +37,7 @@ main(int argc, char *argv[]) {
                         }
                         result /= value;
                         break;
-                default: /* '?' */
+                default: /* '?' */ // Shouldn
                         fprintf(stderr,
                                 "Usage: %s result [-a n] [-s n] [-m n] [-d n]\n",
                                 argv[0]);
