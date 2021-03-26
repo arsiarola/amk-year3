@@ -30,4 +30,11 @@ class MorseDecoderLibrary(object):
         if text != expected_text:
             raise AssertionError('Expected: ' + expected_text + ' got: ' + text)
 
+    def string_to_utf8_characters(self, input):
+        out = ""
+        for c in list(input):
+            for Bytes in list(c.encode('utf8')):
+                print(chr(Bytes))
+                out += chr(Bytes)
 
+        return out
