@@ -12,7 +12,7 @@
 int main(int argc, char *argv[]) {
         int fd;
         int count, size;
-        char *buf, *fname;
+        char *buf, *fname; // lets try dynamic buffer
         char errmsg[ERRSIZE];
         int ret = 0;
         if (argc != 2) {
