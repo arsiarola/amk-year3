@@ -11,22 +11,22 @@ Morse test
  	Set Speed          ${speed}
     Send text          ${text}
     ${out} =           Convert input to output    ${text}
- 	Speed should be    ${speed}
  	Text should be     ${out}
+ 	Speed should be    ${speed}
 
 Convert input to output
     [Arguments]       ${input}
     ${out} =          String to utf8 characters    ${input}
-    Log to console    ${out}
+    #Log to console    ${out}
     ${out} =          Convert To Upper Case    ${out}
     ${out} =          Replace string using regexp    ${out}     ${NON_ALPHA}    X
-    Log to console    upper regex ${out}
+    #Log to console    upper regex ${out}
     [return]          ${out}
 
 Setup
-    Decoder automatic printing     off
-    Decoder immediate printing     off
+    Automatic printing     off
+    Immediate printing     off
 
 Exit
-    Decoder automatic printing     on
-    Decoder immediate printing     on
+    Automatic printing     on
+    Immediate printing     on

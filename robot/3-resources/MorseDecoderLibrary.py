@@ -1,23 +1,29 @@
 import serial
 from robot.api import logger
+
 class MorseDecoderLibrary(object):
     ''' Library for interacting with morse sender and decoder
     '''
+    ROBOT_LIBRARY_SCOPE = 'SUITE'
 
-    def __init__(self, sender_port, decoder_port):
+    def __init__(self,sender_port,decoder_port):
         self._sender = serial.Serial(sender_port, 115200, timeout = 1)
         self._decoder = serial.Serial(decoder_port, 115200, timeout = 20)
 
+
     def set_speed(self, speed):
         self._sender.write(bytes('wpm ' + speed + '\n', 'utf-8'))
+
 
     def send_text(self, text):
         self._decoder.reset_input_buffer()
         self._sender.write(bytes("text " + text + '\n', 'utf-8'))
 
+
     def speed_should_be(self, expected_speed):
-        self._decoder.write(bytes('WPM', 'utf-8'))
+        self._decoder.write(bytes('WPM\n', 'utf-8'))
         text = self._decoder.readline().strip().decode('utf-8')
+        write_to_console('text is: ' + text)
         speed = int(text.split()[2])
         if speed != int(expected_speed):
             raise AssertionError('Expected: ' + str(expected_speed) + ' got: '  + str(speed) + ' line: ' + text)
@@ -28,23 +34,22 @@ class MorseDecoderLibrary(object):
         if text != expected_text:
             raise AssertionError('Expected: ' + expected_text + ' got: ' + text)
 
-    def decoder_automatic_printing(self, mode):
-        self._decoder.write(bytes('WPM ' + mode, 'utf-8'))
-        self._decoder.readline()
-
-    def decoder_immediate_printing(self, mode):
-        self._decoder.write(bytes('IMM ' + mode, 'utf-8'))
-        self._decoder.readline()
-
-
     def string_to_utf8_characters(self, input):
         out = ""
         for c in list(input):
-            for Bytes in list(c.encode('utf8')):
-                out += chr(Bytes)
-
+            for bytes in list(c.encode('utf-8')):
+                print(chr(bytes))
+                out += chr(bytes)
         return out
 
-def write_to_info(s):
-            logger.info(s)
+    def automatic_printing(self,mode):
+        self._decoder.write(bytes('WPM ' + mode + '\n', 'utf-8'))
+        self._decoder.readline()
 
+
+    def immediate_printing(self,mode):
+        self._decoder.write(bytes('IMM ' + mode + '\n', 'utf-8'))
+        self._decoder.readline()
+
+def write_to_console(s):
+        logger.console(s)
