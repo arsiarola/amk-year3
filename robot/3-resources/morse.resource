@@ -30,4 +30,3 @@ Setup
 Exit
     Decoder automatic printing     on
     Decoder immediate printing     on
-    Send text    \n\n\n

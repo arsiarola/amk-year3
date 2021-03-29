@@ -7,11 +7,10 @@ Documentation     Example of morse transmitter test
 Resource          ./morse.resource
 
 Test template     Morse test
-
 Suite setup       Setup
 Suite teardown    exit
 
 *** Test Cases ***    Speed    Text
-Hello world slow      20       Hello
-#Hello world fast      200      Hello world
+Hello world slow      100       Hello
+Hello world fast      200      Hello world
 #Specials              50       ®©«¶
