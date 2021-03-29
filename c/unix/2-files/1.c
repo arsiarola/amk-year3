@@ -6,29 +6,51 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#define MAXBUF 256
+#include <errno.h>
+#define ERRSIZE 256
 
 int main(int argc, char *argv[]) {
         int fd;
-        int count;
-        char buf[MAXBUF];
+        int count, size;
+        char *buf, *fname;
+        char errmsg[ERRSIZE];
+        int ret = 0;
         if (argc != 2) {
-                fprintf(stderr,
-                        "Program takes one argument, file to be read backwards\n"
-                        "Usage: %s [FILE]\n", argv[0]);
-                exit(EXIT_FAILURE);
+                snprintf(errmsg, ERRSIZE,
+                         "Program takes one argument, file to be read backwards\n"
+                         "Usage: %s [FILE]\n", argv[0]);
+                ret = -1;
+                goto done;
+        }
+        fname = argv[1];
+        fd = open(fname, O_RDONLY);
+        if (fd < 0) {
+                ret = errno;
+                snprintf(errmsg, ERRSIZE,
+                         "%s couldn't be opened for reading : %s",
+                         fname, strerror(errno));
+                goto done;
         }
 
-        fd = open(argv[1], O_RDONLY);
-        if (fd < 0) {
-                fprintf(stderr,  "%s couldn't be opened for reading : ", argv[1]);
-                perror(NULL);
-                exit(EXIT_FAILURE);
+
+        size = lseek(fd, 0, SEEK_END);;
+        printf("filesize=%d\n", size);
+        lseek(fd, 0, SEEK_SET);
+        buf = malloc(sizeof(char) * size + 1);
+        if (buf == NULL) {
+                ret = errno;
+                snprintf(errmsg, ERRSIZE,
+                         "Error in allocating memory : %s\n",
+                         strerror(errno));
+                goto close_file;
         }
-        if ((count = pread(fd, buf, MAXBUF, 0)) < 0) {
-                fprintf(stderr,  "Error in reading file %s : ", argv[1]);
-                perror(NULL);
-                exit(EXIT_FAILURE);
+
+        if ((count = pread(fd, buf, size, 0)) < 0) {
+                ret = errno;
+                snprintf(errmsg, ERRSIZE,
+                         "Error in reading file %s : %s",
+                         fname, strerror(errno));
+                goto free_buf;
         }
 
         // no strrev() for gcc =(
@@ -38,5 +60,17 @@ int main(int argc, char *argv[]) {
                 printf("%c", buf[i]);
         }
 
-        exit(EXIT_SUCCESS);
+free_buf:
+        free(buf);
+close_file:
+        close(fd);
+done:
+        if (ret == 0) {
+                exit(EXIT_SUCCESS);
+        }
+        else {
+                fprintf(stderr, "%s", errmsg);
+                exit(EXIT_FAILURE);
+        }
+
 }
