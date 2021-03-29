@@ -62,7 +62,6 @@ done:
                 fprintf(stderr, "%s", errmsg);
                 exit(EXIT_FAILURE);
         }
-
 }
 
 int try_open_file(const char *fname, int flags, char *errmsg, size_t size) {
