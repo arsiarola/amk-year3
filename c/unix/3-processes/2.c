@@ -13,6 +13,7 @@
 int main(int argc, char *argv[]) {
         int fd;
         char *fname;
+        int count;
         if (argc < 2) {
                 fprintf(stderr,
                         "Not enough arguments\n"
@@ -20,6 +21,7 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
         }
         printf("Etsittävä sana on %s\n", argv[1]);
+        count = 0;
         for (int i = 2; i < argc; i++) {
                 fname = argv[i];
                 printf("%s  ", fname);
@@ -27,9 +29,14 @@ int main(int argc, char *argv[]) {
                         perror(NULL);
                 }
                 else {
-                        printf("%s\n", etsi(fd, "test") ? "KYLLÄ" : "ei");
+                        int found = etsi(fd, "test");
+                        printf("%s\n", found ? "KYLLÄ" : "ei");
+                        if (found) count++;
+                        close(fd);
                 }
         }
+        printf("Tiedostoja %d kpl, esiintymä %d:ssä tiedostossa.\n", argc - 2, count);
+        exit(EXIT_SUCCESS);
 }
 
 int etsi(int fd, char *mjono) {
