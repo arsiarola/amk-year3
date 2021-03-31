@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <string.h>
 
 #define TRUE 1
 #define FALSE 0
@@ -23,8 +24,13 @@ int main(int argc, char *argv[]) {
         if ((fd1 = open(fname1, O_RDONLY)) < 0)
                 exit(EXIT_FAILURE);
         if ((fd2 = open(fname2 , O_RDONLY)) < 0)
+                close(fd1);
                 exit(EXIT_FAILURE);
-        sameFile(fd1, fd2);
+
+        printf("Files same = %s\n", sameFile(fd1, fd2) ? "TRUE" : "FALSE");
+        close(fd1);
+        close(fd2);
+        exit(EXIT_SUCCESS);
 }
 
 int sameFile(int fd1, int fd2) {
@@ -33,12 +39,10 @@ int sameFile(int fd1, int fd2) {
                 exit(EXIT_FAILURE);
         if(fstat(fd2 ,&stat2) < 0)
                 exit(EXIT_FAILURE);
-        printf("File1 inode: \t\t%lu\n", stat1.st_ino);
-        printf("File2 inode: \t\t%lu\n", stat2.st_ino);
-        printf("File1 dev: \t\t%lu\n", stat1.st_dev);
-        printf("File2 dev: \t\t%lu\n", stat2.st_dev);
+        printf("File1 inode:    %lu\n", stat1.st_ino);
+        printf("File2 inode:    %lu\n", stat2.st_ino);
+        printf("File1 dev:      %lu\n", stat1.st_dev);
+        printf("File2 dev:      %lu\n", stat2.st_dev);
         return (stat1.st_dev == stat2.st_dev) && (stat1.st_ino == stat2.st_ino);
 }
 
-int etsi(int fd, char *mjono) {
-}
