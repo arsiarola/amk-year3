@@ -38,19 +38,14 @@ int main(int argc, char *argv[]) {
         lseek(fd, 0, SEEK_SET);
         buf = malloc(sizeof(char) * size + 1);
         if (buf == NULL) {
-                ret = errno;
-                snprintf(errmsg, ERRSIZE,
-                         "Error in allocating memory : %s\n",
-                         strerror(errno));
-                goto close_file;
+                perror("error in allocation memory");
+                close(fd);
+                exit(EXIT_FAILURE);
         }
 
         if ((count = pread(fd, buf, size, 0)) < 0) {
-                ret = errno;
-                snprintf(errmsg, ERRSIZE,
-                         "Error in reading file %s : %s",
-                         fname, strerror(errno));
-                goto free_buf;
+                perror("error in opening file");
+                free(buf);
         }
 
         // no strrev() for gcc =(
@@ -60,17 +55,6 @@ int main(int argc, char *argv[]) {
                 printf("%c", buf[i]);
         }
 
-free_buf:
         free(buf);
-close_file:
-        close(fd);
-done:
-        if (ret == 0) {
-                exit(EXIT_SUCCESS);
-        }
-        else {
-                fprintf(stderr, "%s", errmsg);
-                exit(EXIT_FAILURE);
-        }
-
+        exit(EXIT_SUCCESS);
 }

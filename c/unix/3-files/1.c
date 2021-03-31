@@ -9,6 +9,7 @@
 #define TRUE 1
 #define FALSE 0
 
+void err_exit();
 int sameFile(int fd1, int fd2);
 int main(int argc, char *argv[]) {
         int fd1, fd2;
@@ -22,10 +23,11 @@ int main(int argc, char *argv[]) {
         fname1 = argv[1];
         fname2 = argv[2];
         if ((fd1 = open(fname1, O_RDONLY)) < 0)
-                exit(EXIT_FAILURE);
-        if ((fd2 = open(fname2 , O_RDONLY)) < 0)
+                err_exit();
+        if ((fd2 = open(fname2 , O_RDONLY)) < 0) {
                 close(fd1);
-                exit(EXIT_FAILURE);
+                err_exit();
+        }
 
         printf("Files same = %s\n", sameFile(fd1, fd2) ? "TRUE" : "FALSE");
         close(fd1);
@@ -36,13 +38,18 @@ int main(int argc, char *argv[]) {
 int sameFile(int fd1, int fd2) {
         struct stat stat1, stat2;
         if(fstat(fd1 ,&stat1) < 0)
-                exit(EXIT_FAILURE);
+                err_exit();
         if(fstat(fd2 ,&stat2) < 0)
-                exit(EXIT_FAILURE);
-        printf("File1 inode:    %lu\n", stat1.st_ino);
-        printf("File2 inode:    %lu\n", stat2.st_ino);
-        printf("File1 dev:      %lu\n", stat1.st_dev);
-        printf("File2 dev:      %lu\n", stat2.st_dev);
+                err_exit();
+        // for debugging
+        // printf("File1 inode:    %lu\n", stat1.st_ino);
+        // printf("File2 inode:    %lu\n", stat2.st_ino);
+        // printf("File1 dev:      %lu\n", stat1.st_dev);
+        // printf("File2 dev:      %lu\n", stat2.st_dev);
         return (stat1.st_dev == stat2.st_dev) && (stat1.st_ino == stat2.st_ino);
 }
 
+void err_exit() {
+        perror(NULL);
+        exit(EXIT_FAILURE);
+}

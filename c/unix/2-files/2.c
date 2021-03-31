@@ -6,40 +6,37 @@
 #include <fcntl.h>
 #include <string.h>
 #include <unistd.h>
-#define MAXBUF 256
-#define ERRSIZE 256
+#include <errno.h>
 
-int try_open_file(const char *fname, int flags, char *errmsg, size_t size);
+
+int malloc_fcontent(int fd, char *fcontent, int *fsize);
+int read_file(char *fname, char *fcontent, int *fsize);
 
 int main(int argc, char *argv[]) {
-        int fd1, fd2;
-        int count;
-        char buf1[MAXBUF], buf2[MAXBUF]; // lets go for static buffers this time
-        char errmsg[ERRSIZE];
-        int ret = 0;
+        char *buf1, *buf2;
+        int  size1, size2;
         if (argc != 3) {
-                ret = -1;
-                snprintf(errmsg, ERRSIZE,
-                         "Program takes two arguments, files to be compared\n"
-                         "Usage: %s [FILE1] [FILE2]\n", argv[0]);
-                goto done;
+                fprintf(stderr,
+                        "Program takes two arguments, files to be compared\n"
+                        "Usage: %s [FILE1] [FILE2]\n", argv[0]);
+                exit(EXIT_FAILURE);
         }
 
-        if ((fd1 = try_open_file(argv[1], O_RDONLY, errmsg, ERRSIZE)) < 0)
+        if (read_file(argv[1], buf1, &size1)) {
+                fprintf(stderr,
+                        "Error reading file\n");
                 goto done;
-        if ((fd2 = try_open_file(argv[2], O_RDONLY, errmsg, ERRSIZE)) < 0)
-                goto close_file1;
+        }
+        if (read_file(argv[2], buf2, &size2)) {
+                fprintf(stderr,
+                        "Error reading file\n");
+                goto free_buf1;
+        }
 
-        if ((count = pread(fd1, buf1, MAXBUF, 0)) < 0) {
-                snprintf(errmsg, ERRSIZE, "Error in reading file %s : ", argv[1]);
-                goto close_file2;
-        }
-        if ((count = pread(fd2, buf2, MAXBUF, 0)) < 0) {
-                snprintf(errmsg, ERRSIZE, "Error in reading file %s : ", argv[2]);
-                goto close_file2;
-        }
+
         char *p1 = buf1, *p2 = buf2;
-        for (count = 0 ; *p1 != '\0' && *p2 != '\0' ; ++p1, ++p2, ++count) {
+        int count = 0;
+        for ( ; *p1 != '\0' && *p2 != '\0' ; ++p1, ++p2, ++count) {
                 if (*p1 != *p2) break;
                 printf("%c", *p1);
         }
@@ -50,27 +47,54 @@ int main(int argc, char *argv[]) {
         else
                 printf("Same amount of characters: %d\n", count);
 
-close_file2:
-        close(fd2);
-close_file1:
-        close(fd1);
+free_buf2:
+        free(buf2);
+free_buf1:
+        free(buf1);
 done:
-        if (ret == 0) {
-                exit(EXIT_SUCCESS);
+        if (errno) {
+                perror(NULL);
+                exit(EXIT_FAILURE);
         }
         else {
-                fprintf(stderr, "%s", errmsg);
-                exit(EXIT_FAILURE);
+                exit(EXIT_SUCCESS);
         }
 }
 
-int try_open_file(const char *fname, int flags, char *errmsg, size_t size) {
-        int fd = open(fname, flags);
-        if (fd < 0) {
-                snprintf(errmsg, size,
-                         "%s couldn't be opened for reading : ",
-                         fname);
-        }
-        return fd;
+int malloc_fcontent(int fd, char *fcontent, int *fsize) {
+        char *buf;
+        int size, sum, ret;
+        size = lseek(fd, 0, SEEK_END);
+        lseek(fd, 0, SEEK_SET);
+        buf = malloc(sizeof(char) * size + 1);
+        if (buf == NULL)
+                return errno;
+        buf[size] = '\0';
+        fcontent = buf;
+        *fsize = size;
+        return 0;
 }
+
+int read_file(char *fname, char *fcontent, int *fsize) {
+        char *content;
+        int fd, size;
+        if ((fd = open(fname, O_RDONLY)) < 0)
+                return errno;
+
+        if (malloc_fcontent(fd, content, &size)) {
+                close(fd);
+                return errno;
+        }
+
+        if ((pread(fd, content, size, 0)) != size) {
+                close(fd);
+                return errno;
+        }
+
+        close(fd);
+        fcontent = content;
+        *fsize = size;
+        return 0;
+}
+
 

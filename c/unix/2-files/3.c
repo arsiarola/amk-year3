@@ -8,29 +8,24 @@
 #include <unistd.h> // read
 #include <string.h>
 
-#define BUFSIZE 512
-#define ERRSIZE 256
-
-
 enum options { Print = '1', Sum = '2', Overwrite = '3' };
 
-int print_file(int fd, char *errmsg, size_t size);
-int user_values_to_file(int fd, const char *fname, char *errmsg, size_t errsize);
+int print_file(int fd);
+int user_values_to_file(int fd, const char *fname);
 int get_file_sum(int fd);
 int write_sum(int fd);
 
 int main(int argc, char *argv[]) {
         int fd;
-        char *fname;
-        char errmsg[ERRSIZE];
-        char *buf;
+        char *fname, *buf;
+        char opt;
         // if nothing changes err variable it will be zero at the end
         // meaning success
         int err = 0;
         if (argc != 2) {
                 fprintf(stderr,
-                         "Program takes one argument, output filename\n"
-                         "Usage: %s [FILE]\n", argv[0]);
+                        "Program takes one argument, output filename\n"
+                        "Usage: %s [FILE]\n", argv[0]);
                 exit(EXIT_FAILURE);
         }
         fname = argv[1];
@@ -40,7 +35,6 @@ int main(int argc, char *argv[]) {
         if (fd < 0 && errno != EEXIST) {
                 exit(EXIT_FAILURE);
         }
-        char opt;
         else if (fd < 0 && errno == EEXIST) {
                 fprintf(stderr,
                         "File %s exists, Choose option by entering "
@@ -71,14 +65,14 @@ int main(int argc, char *argv[]) {
         }
 
         else if (opt == Overwrite) {
-                if (err = user_values_to_file(fd, fname, errmsg, ERRSIZE)) {
+                if (err = user_values_to_file(fd, fname)) {
                         goto close_file;
                 }
         }
 
         // Print was required at the end so this covers it
         // but with opt == Print we can also just print if we want to
-        err = print_file(fd, errmsg, ERRSIZE);
+        err = print_file(fd);
 
 close_file:
         close(fd);
@@ -92,13 +86,13 @@ close_file:
         }
 }
 
-int print_file(int fd, char *errmsg, size_t errsize) {
+int print_file(int fd) {
         off_t size = lseek(fd, 0, SEEK_END);
         char *buf = malloc(size + 1);
         if (buf == NULL) {
-                snprintf(errmsg, errsize,
-                         "Memory allocation fail : %s",
-                         strerror(errno));
+                fprintf(stderr,
+                        "Memory allocation fail : %s",
+                        strerror(errno));
                 return errno;
         }
         int ret = 0;
@@ -106,8 +100,8 @@ int print_file(int fd, char *errmsg, size_t errsize) {
         while (read(fd, buf, size) > 0) {
                 size_t len = strlen(buf);
                 if ((write(STDOUT_FILENO, buf, len)) != len) {
-                        snprintf(errmsg, errsize,
-                                 "Could not write all chars to stdout");
+                        fprintf(stderr,
+                                "Could not write all chars to stdout");
                         ret = errno;
                         break;
                 }
@@ -145,15 +139,18 @@ int write_sum(int fd) {
 
         lseek(fd, 0, SEEK_SET);
         buf = malloc(sizeof(char) * size + 1);
+        if (buf == NULL) {
+                fprintf(stderr, "Memory allocation fail");
+                return errno;
+        }
         sum = get_file_sum(fd);
-
-        snprintf(buf, BUFSIZE, "sum=%d", sum);
+        snprintf(buf, size, "sum=%d", sum);
         ret = write(fd, buf, strlen(buf)) == strlen(buf) ? 0 : -1;
         free(buf);
         return ret;
 }
 
-int user_values_to_file(int fd, const char *fname, char *errmsg, size_t errsize) {
+int user_values_to_file(int fd, const char *fname) {
         int n;
         int value;
         size_t size = 32;
@@ -166,9 +163,9 @@ int user_values_to_file(int fd, const char *fname, char *errmsg, size_t errsize)
                 snprintf(buf, size, "%d\n", value);
                 int len = strlen(buf);
                 if ((write(fd, buf, len)) != len) {
-                        snprintf(errmsg, errsize,
-                                 "Could not write all chars to file %s",
-                                 fname);
+                        fprintf(stderr,
+                                "Could not write all chars to file %s",
+                                fname);
                         return errno;
                 }
         }
