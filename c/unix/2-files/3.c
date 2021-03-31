@@ -92,6 +92,7 @@ int main(int argc, char *argv[]) {
         // Print was required at the end so this covers it
         // but with opt == Print we can also just print if we want to
         err = print_file(fd, errmsg, ERRSIZE);
+
 close_file:
         close(fd);
 done:
