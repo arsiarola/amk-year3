@@ -17,6 +17,7 @@ enum options { Print = '1', Sum = '2', Overwrite = '3' };
 int print_file(int fd, char *errmsg, size_t size);
 int user_values_to_file(int fd, const char *fname, char *errmsg, size_t errsize);
 int get_file_sum(int fd);
+int write_sum(int fd);
 
 int main(int argc, char *argv[]) {
         int fd;
@@ -27,21 +28,20 @@ int main(int argc, char *argv[]) {
         // meaning success
         int err = 0;
         if (argc != 2) {
-                snprintf(errmsg, ERRSIZE,
+                fprintf(stderr,
                          "Program takes one argument, output filename\n"
                          "Usage: %s [FILE]\n", argv[0]);
+                exit(EXIT_FAILURE);
         }
         fname = argv[1];
 
         // First opening is just for checking if the file exists
         fd = open(fname, O_CREAT | O_EXCL | O_RDWR);
         if (fd < 0 && errno != EEXIST) {
-                snprintf(errmsg, ERRSIZE, "Error in opening file %s : %s",
-                         fname, strerror(errno));
-                goto done;
+                exit(EXIT_FAILURE);
         }
         char opt;
-        if (fd < 0 && errno == EEXIST) {
+        else if (fd < 0 && errno == EEXIST) {
                 fprintf(stderr,
                         "File %s exists, Choose option by entering "
                         "corresponding number and pressing enter:\n"
@@ -59,32 +59,19 @@ int main(int argc, char *argv[]) {
 
         int flags = O_RDWR;
         if (opt == Overwrite) flags |= O_TRUNC;
+
         if ((fd = open(fname, flags)) < 0) {
-                err = errno;
-                snprintf(errmsg, ERRSIZE, "Error in opening file %s : %s",
-                         fname, strerror(errno));
-                goto done;
+                perror(NULL);
+                exit(EXIT_FAILURE);
         }
 
         if (opt == Sum) {
-                int size = lseek(fd, 0, SEEK_END);;
-                printf("filesize=%d\n", size);
-                lseek(fd, 0, SEEK_SET);
-                buf = malloc(sizeof(char) * size + 1);
-                int sum = get_file_sum(fd);
-                lseek(fd, 0, SEEK_END);
-                snprintf(buf, BUFSIZE, "sum=%d", sum);
-                if ((write(fd, buf, strlen(buf))) != strlen(buf)) {
-                        snprintf(errmsg, ERRSIZE,
-                                 "Could not write all chars to file %s : %s",
-                                 fname, strerror(errno));
+                if (err = write_sum(fd))
                         goto close_file;
-                }
         }
 
         else if (opt == Overwrite) {
-                err = user_values_to_file(fd, fname, errmsg, ERRSIZE);
-                if (err) {
+                if (err = user_values_to_file(fd, fname, errmsg, ERRSIZE)) {
                         goto close_file;
                 }
         }
@@ -95,9 +82,9 @@ int main(int argc, char *argv[]) {
 
 close_file:
         close(fd);
-done:
+
         if (err) {
-                fprintf(stderr, "%s", errmsg);
+                fprintf(stderr, "%s", strerror(err));
                 exit(EXIT_FAILURE);
         }
         else {
@@ -149,6 +136,21 @@ int get_file_sum(int fd) {
                 }
         }
         return sum;
+}
+
+int write_sum(int fd) {
+        char *buf;
+        int size, sum, ret;
+        size = lseek(fd, 0, SEEK_END);;
+
+        lseek(fd, 0, SEEK_SET);
+        buf = malloc(sizeof(char) * size + 1);
+        sum = get_file_sum(fd);
+
+        snprintf(buf, BUFSIZE, "sum=%d", sum);
+        ret = write(fd, buf, strlen(buf)) == strlen(buf) ? 0 : -1;
+        free(buf);
+        return ret;
 }
 
 int user_values_to_file(int fd, const char *fname, char *errmsg, size_t errsize) {
