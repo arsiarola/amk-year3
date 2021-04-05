@@ -17,11 +17,13 @@ int main(int argc, char *argv[]) {
         struct dirent *dent1, *dent2;
         if (argc < 3)
                 err_exit("Usage: a.out [DIR1] [DIR2]\n");
+
         if ((dirp1=opendir(argv[1])) == NULL)
                 err_exit("opendir1 failed");
+
         if ((dirp2=opendir(argv[2])) == NULL)
                 err_exit("opendir2 failed");
-        printf("Hakemisto1 %s\n", argv[1]);
+
         while(dent1=readdir(dirp1)) {
                 if (is_dot_or_dotdot(dent1->d_name))
                         continue;

@@ -10,8 +10,13 @@ void err_exit(const char *errmsg);
 int main(void) {
         pid_t c1, c2;
         int status1, status2;
-        printf("before fork\n");
+
         (c1 = fork()) && (c2 = fork());
+        if (c1 < 0)
+                err_exit("child1 fork error");
+        if (c2 < 0)
+                err_exit("child2 fork error");
+
         if (c1 == 0) {
                 printf("First child ready\n");
                 exit(1);
@@ -46,6 +51,6 @@ void print_sig(int sig) {
 }
 
 void err_exit(const char *errmsg) {
-        fprintf(stderr, "%s", errmsg);
+        perror(errmsg);
         exit(EXIT_FAILURE);
 }
