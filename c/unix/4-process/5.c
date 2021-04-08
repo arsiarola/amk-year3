@@ -7,57 +7,46 @@
 #include <string.h>
 
 #define MSG "line1\nline2\nlast line of the file"
+#define SIZE 2
+
 extern const char * const sys_siglist[];
 
 void err_exit(const char *errmsg);
 void print_sig(int sig);
 
-
-/*
-   man 2 unlink, second paragraph from description, explains why the file can be closed
-   and unlinked in the child process while the mother process still uses it afterwards
-
-   "If  the  name  was  the  last link to a file but any processes still have the file
-   open, the file will remain in existence until the last file  descriptor  referring
-   to it is closed."
-   */
-#define SIZE 2
-
 int main(void) {
         pid_t c;
-        int fd, status;
+        int fd[2];
+        int status;
         char buf[SIZE];
-        char fname[] = "tmpXXXXXX";
 
-        if ((fd = mkstemp(fname)) < 0)
-                err_exit("mkstmp failed");
-
-        unlink(fname);
-
+        pipe(fd);
         if ((c = fork()) < 0)
                 err_exit("fork error");
 
         if (c == 0) {
-                if (write(fd, MSG, strlen(MSG)) != strlen(MSG))
+                close(fd[0]); // doesnt read the pipe
+                if (write(fd[1], MSG, strlen(MSG)) != strlen(MSG))
                         err_exit("Error in writing to file");
-                close(fd);
+                close(fd[1]);
                 exit(EXIT_SUCCESS);
         }
 
         // parent
+        close(fd[1]); // doesnt write to pipe
         waitpid(c, &status, 0);
         print_sig(status);
         if (status)
                 err_exit("child returned error");
-        lseek(fd, 0, SEEK_SET);
+
         int count;
-        while ((count = read(fd, buf, SIZE-1)) > 0) {
+        while ((count = read(fd[0], buf, SIZE-1)) > 0) {
                 buf[count] = '\0';
                 printf("%s", buf);
         }
         printf("\n");
 
-        close(fd);
+        close(fd[0]);
         exit(EXIT_SUCCESS);
 }
 

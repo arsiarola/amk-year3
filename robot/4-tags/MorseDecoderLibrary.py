@@ -1,5 +1,6 @@
 import serial
 from robot.api import logger
+import time
 
 class MorseDecoderLibrary(object):
     ''' Library for interacting with morse sender and decoder
@@ -14,18 +15,21 @@ class MorseDecoderLibrary(object):
     def set_speed(self, speed):
         self._sender.write(bytes('wpm ' + speed + '\n', 'utf-8'))
 
-
     def send_text(self, text):
         self._decoder.reset_input_buffer()
         self._sender.write(bytes("text " + text + '\n', 'utf-8'))
 
-
-    def speed_should_be(self, expected_speed):
+    def speed_should_be(self, expected_speed, err_margin):
         self._decoder.write(bytes('WPM\n', 'utf-8'))
         text = self._decoder.readline().strip().decode('utf-8')
         write_to_console('text is: ' + text)
         speed = int(text.split()[2])
-        if speed != int(expected_speed):
+        expected_speed = int(expected_speed)
+        err_margin = int(err_margin)
+        offset = expected_speed * err_margin / 100
+        max_speed = expected_speed + offset
+        min_speed = expected_speed - offset
+        if speed < min_speed or max_speed < speed:
             raise AssertionError('Expected: ' + str(expected_speed) + ' got: '  + str(speed) + ' line: ' + text)
 
 
@@ -44,14 +48,12 @@ class MorseDecoderLibrary(object):
 
     def automatic_printing(self,mode):
         self._decoder.write(bytes('WPM ' + mode + '\n', 'utf-8'))
-        self._decoder.reset_input_buffer()
-        # self._decoder.readline()
+        self._decoder.readline()
 
 
     def immediate_printing(self,mode):
         self._decoder.write(bytes('IMM ' + mode + '\n', 'utf-8'))
-        self._decoder.reset_input_buffer()
-        # self._decoder.readline()
+        self._decoder.readline()
 
 def write_to_console(s):
         logger.console(s)
