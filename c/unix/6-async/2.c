@@ -8,8 +8,9 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <errno.h>
+#include <sys/select.h>
 
-
+#define MAX(x, y) (((x) > (y)) ? (x) : (y))
 
 void err_exit(const char *errmsg);
 void sig_handler(int sig);
@@ -21,12 +22,6 @@ int main(int argc, char *argv[]) {
         pipe(fd);
         if (fd < 0)
                 err_exit("pipe failed");
-
-        int flags;
-        flags = fcntl(fd[0], F_GETFL); 
-        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-        flags = fcntl(STDIN_FILENO, F_GETFL); 
-        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
         if ((child = fork()) < 0)
                 err_exit("Failed to fork");
@@ -44,7 +39,7 @@ int main(int argc, char *argv[]) {
                         sleep(1);
                 }
                 close(fd[1]);
-                return 0;
+                exit(EXIT_SUCCESS);
         }
         // parent
         close(fd[1]);
@@ -55,24 +50,37 @@ int main(int argc, char *argv[]) {
         sigemptyset(&act.sa_mask);
         sigaction(SIGCHLD,  &act, NULL);
 
-        char buf[32];
-        int n;
-        while (1) {
-                if ((n = read(fd[0], buf, 10)) > 0 ) {
-                        buf[n] = '\0';
-                        printf("%s", buf);
-                } 
-                else if (n == -1 && errno != EAGAIN) {
-                        err_exit("Error reading child pipe");
-                } 
+        fd_set fd_sel;
 
-                if ((n = read(STDIN_FILENO, buf, 10)) > 0 ) {
-                        buf[n] = '\0';
-                        printf("%s", buf);
+        char buf[32];
+        int n, count;
+        while (1) {
+                // select() will modify bits, reset them back
+                FD_ZERO(&fd_sel);
+                FD_SET(STDIN_FILENO, &fd_sel);
+                FD_SET(fd[0], &fd_sel);
+
+                count = select(4, &fd_sel, NULL, NULL, NULL);
+                if (count == -1)
+                        err_exit("select() error");
+
+                if (FD_ISSET(fd[0], &fd_sel)) {
+                        if ((n = read(fd[0], buf, 10)) > 0 ) {
+                                write(STDOUT_FILENO, buf, strlen(buf));
+                        } 
+                        else if (n == -1 && errno != EAGAIN) {
+                                err_exit("Error reading child pipe");
+                        } 
                 }
-                else if (n == -1 && errno != EAGAIN) {
-                        err_exit("Error reading child pipe");
-                } 
+
+                if (FD_ISSET(STDIN_FILENO, &fd_sel)) {
+                        if ((n = read(STDIN_FILENO, buf, 10)) > 0 ) {
+                                write(STDOUT_FILENO, buf, strlen(buf));
+                        }
+                        else if (n == -1 && errno != EAGAIN) {
+                                err_exit("Error reading stdin");
+                        } 
+                }
         }
 
         close(fd[0]);
