@@ -5,33 +5,77 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <string.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
 
-extern const char * const sys_siglist[];
-void sig_handler(int sig);
+
+
+void err_exit(const char *errmsg);
 
 int main(int argc, char *argv[]) {
-        struct sigaction act;
-        act.sa_handler = sig_handler;
-        act.sa_flags = 0;
+        pid_t child;
+        int flags;
+        int fd[2];
 
-        sigemptyset(&act.sa_mask); // yhtään ei estetä, kaikki signaalit kelpuutetaan
-        sigaction(SIGINT,  &act, NULL);
-        sigaction(SIGTERM, &act, NULL);
-        while (1) {
-                printf("pid=%d\n", getpid());
-                sleep(1);
+        pipe(fd);
+        if (fd < 0)
+                err_exit("pipe failed");
+
+        flags = fcntl(fd[0], F_GETFL); 
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+        flags = fcntl(STDIN_FILENO, F_GETFL); 
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
+
+        if ((child = fork()) < 0)
+                err_exit("Failed to fork");
+
+
+        if (child == 0) { // child
+                close(fd[0]);
+                char msg[32];
+                for (int i = 0; i < 20; ++i) {
+                        snprintf(msg, 32, "line%d\n", i);
+                        write(fd[1], msg, strlen(msg));
+                        sleep(1);
+                }
+                close(fd[1]);
+                return 0;
         }
+        // parent
+        char buf[32];
+        close(fd[1]);
+        int n;
+        while (1) {
+                if ((n = read(fd[0], buf, 10)) > 0 ) {
+                        buf[n] = '\0';
+                        printf("%s", buf);
+                } 
+                else if (n == - 1 && errno != EAGAIN) {
+                        err_exit("Error reading child pipe");
+                } 
+
+                if ((n = read(STDIN_FILENO, buf, 10)) > 0 ) {
+                        buf[n] = '\0';
+                        printf("%s", buf);
+                }
+                else if (n == - 1 && errno != EAGAIN) {
+                        err_exit("Error reading child pipe");
+                } 
+        }
+
+        close(fd[0]);
+        exit(EXIT_SUCCESS);
         return 0;
 }
 
-void sig_handler(int sig) {
-        char msg[64];
-        snprintf(
-                 msg, 64, "%s%s%s",
-                 "Tuli signaali ",
-                 strsignal(sig),
-                 "-signaali, suoritus jatkuu\n"
-                 );
-        write(STDOUT_FILENO, msg, strlen(msg));
+void err_exit(const char *errmsg) {
+        perror(errmsg);
+        exit(EXIT_FAILURE);
 }
 
+void sig_handler(int sig) {
+        char msg[128];
+        snprintf(msg, 128, "SIGCHLD vastaanotettu\n");
+        exit(EXIT_SUCCESS);
+}
