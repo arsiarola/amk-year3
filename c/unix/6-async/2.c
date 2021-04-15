@@ -61,6 +61,7 @@ int main(int argc, char *argv[]) {
                 FD_SET(fd[0], &fd_sel);
 
                 count = select(4, &fd_sel, NULL, NULL, NULL);
+                /* count = select(MAX(STDIN_FILENO, fd[0]), &fd_sel, NULL, NULL, NULL); */
                 if (count == -1)
                         err_exit("select() error");
 
