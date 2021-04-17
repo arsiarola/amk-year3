@@ -20,7 +20,6 @@ struct alkio {
 struct alkio *pino = NULL; // osoittaa pinon päällimmäiseen alkioon
 
 int main(int argc, char *argv[]) {
-        char *line;
         size_t lines = 0;
         size_t linecap = 0;
         ssize_t linelen;
