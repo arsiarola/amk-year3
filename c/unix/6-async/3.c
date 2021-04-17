@@ -20,8 +20,8 @@ int main(int argc, char *argv[]) {
         pid_t c1, c2, c3;
         int p1[2], p2[2];
 
-        pipe(p1);
-        if (p1 < 0)
+
+        if (pipe(p1) < 0)
                 err_exit("pipe1 failed");
         if ((c1 = fork()) < 0)
                 err_exit("Failed to fork");
@@ -35,12 +35,12 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
         }
 
-        pipe(p2);
-        if (p2 < 0)
+
+        if (pipe(p2) < 0)
                 err_exit("pipe2 failed");
         if ((c2 = fork()) < 0)
                 err_exit("Failed to fork child2");
-        if (c2 == 0) { 
+        if (c2 == 0) {
                 dup2(p1[IN], STDIN_FILENO);
                 dup2(p2[OUT], STDOUT_FILENO);
                 close(p1[IN]);
@@ -51,9 +51,9 @@ int main(int argc, char *argv[]) {
                 exit(EXIT_FAILURE);
         }
 
-        /*          
-              pipe1 is just used between child1 and child2
-              so can be closed
+        /*
+              child1 and 2 have been handled and since
+              pipe1 is just used between those, it can be closed
 
               pipe1         pipe2         stdout
               child1 ------ child2 ------ child3 ----->
@@ -64,29 +64,31 @@ int main(int argc, char *argv[]) {
 
         if ((c3 = fork()) < 0)
                 err_exit("Failed to fork child3");
-        if (c3 == 0) { 
+        if (c3 == 0) {
                 dup2(p2[IN], STDIN_FILENO);
                 close(p2[IN]);
                 close(p2[OUT]);
+                /* execlp("wc", "wc", "-l", NULL); */
                 execlp("wc", "wc", "-l", NULL);
                 exit(EXIT_FAILURE);
         }
 
-        /*          
-             child3 writes directly to stdout, and uses pipe2 to 
+        /*
+             child3 writes directly to stdout, and uses pipe2 to
              communicate with child2, so pipe2 can be closed
 
                     pipe1         pipe2         stdout
              child1 ------ child2 ------ child3 ----->
-                                    ^             ^             
+                                    ^
         */
         close(p2[IN]);
         close(p2[OUT]);
 
-        int status;
-        waitpid(c1, &status, 0);
-        waitpid(c2, &status, 0);
-        waitpid(c3, &status, 0);
+
+        // not checking the status of of child so we can pass NULL to wstatus parameter
+        waitpid(c1, NULL, 0);
+        waitpid(c2, NULL, 0);
+        waitpid(c3, NULL, 0);
         exit(EXIT_SUCCESS);
 }
 

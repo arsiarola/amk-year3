@@ -17,19 +17,18 @@ int main(int argc, char *argv[]) {
         struct sigaction act;
         act.sa_handler = sig_handler;
         act.sa_flags = 0;
-        int fd[2];
-
-        if (pipe(fd) < 0)
-                err_exit("creating pipe failed");
-
         sigemptyset(&act.sa_mask);
         sigaction(SIGUSR1,  &act, NULL);
+
+        int fd[2];
+        if (pipe(fd) < 0)
+                err_exit("creating pipe failed");
 
         if ((child = fork()) < 0)
                 err_exit("Failed to fork");
 
 
-        if (child == 0) { // child
+        if (child == 0) {
                 dup2(fd[0], STDIN_FILENO);
                 close(fd[0]);
                 close(fd[1]);
@@ -37,8 +36,8 @@ int main(int argc, char *argv[]) {
                         err_exit("Error in launching child with execl");
         }
         // parent
-        printf("program=%d, childprogram=%d\n", getpid(), child);
         close(fd[1]);
+        printf("program=%d, childprogram=%d\n", getpid(), child);
 
         printf("%d: Waiting for SIGUSR1 signal\n", getpid());
         pause();

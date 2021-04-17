@@ -9,28 +9,22 @@
 #include <fcntl.h>
 #include <errno.h>
 
-
-
 void err_exit(const char *errmsg);
 void sig_handler(int sig);
 
 int main(int argc, char *argv[]) {
         pid_t child;
         int fd[2];
+        int flags;
 
-        pipe(fd);
-        if (fd < 0)
+        if (pipe(fd) < 0)
                 err_exit("pipe failed");
 
-        int flags;
-        flags = fcntl(fd[0], F_GETFL); 
-        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
-        flags = fcntl(STDIN_FILENO, F_GETFL); 
-        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
+        flags = fcntl(fd[0], F_GETFL);
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
         if ((child = fork()) < 0)
                 err_exit("Failed to fork");
-
 
         if (child == 0) { // child
                 // allow only fd[1]
@@ -48,6 +42,8 @@ int main(int argc, char *argv[]) {
         }
         // parent
         close(fd[1]);
+        flags = fcntl(STDIN_FILENO, F_GETFL);
+        fcntl(STDIN_FILENO, F_SETFL, flags | O_NONBLOCK);
 
         struct sigaction act;
         act.sa_handler = sig_handler;
@@ -60,17 +56,17 @@ int main(int argc, char *argv[]) {
         while (1) {
                 if ((n = read(fd[0], buf, 10)) > 0 ) {
                         printf("%s", buf);
-                } 
+                }
                 else if (n == -1 && errno != EAGAIN) {
                         err_exit("Error reading child pipe");
-                } 
+                }
 
                 if ((n = read(STDIN_FILENO, buf, 10)) > 0 ) {
                         printf("%s", buf);
                 }
                 else if (n == -1 && errno != EAGAIN) {
                         err_exit("Error reading child pipe");
-                } 
+                }
         }
 
         close(fd[0]);

@@ -26,12 +26,8 @@ int main(int argc, char *argv[]) {
 
 void sig_handler(int sig) {
         char msg[64];
-        snprintf(
-                 msg, 64, "%s%s%s",
-                 "Tuli signaali ",
-                 strsignal(sig),
-                 "-signaali, suoritus jatkuu\n"
-                 );
+        snprintf(msg, 64, "%s%s%s",
+                 "Tuli signaali ", strsignal(sig), " suoritus jatkuu\n");
         write(STDOUT_FILENO, msg, strlen(msg));
 }
 

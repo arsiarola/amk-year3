@@ -19,7 +19,6 @@ static int count = CHILD_COUNT;
 
 int main(int argc, char *argv[]) {
         struct sigaction act;
-        int fd[2];
 
         act.sa_handler = sig_handler;
         act.sa_flags = 0;
@@ -47,12 +46,12 @@ int main(int argc, char *argv[]) {
 
 void child_work(int num) {
         sleep(num);
-        printf("%s, %ds\n",        num == 1 ?
-                        "Eka"    : num == 2 ?
-                        "Toka"   : num == 3 ?
-                        "Kolmas" : "",
+        printf("%s, %ds\n",
+                          num == 1 ?  "Eka"
+                        : num == 2 ?  "Toka"
+                        : num == 3 ?  "Kolmas"
+                        : "",
                         num);
-        exit(EXIT_SUCCESS);
 }
 
 void sig_handler(int sig) {

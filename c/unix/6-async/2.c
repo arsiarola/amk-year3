@@ -19,8 +19,7 @@ int main(int argc, char *argv[]) {
         pid_t child;
         int fd[2];
 
-        pipe(fd);
-        if (fd < 0)
+        if (pipe(fd) < 0)
                 err_exit("pipe failed");
 
         if ((child = fork()) < 0)
@@ -60,18 +59,17 @@ int main(int argc, char *argv[]) {
                 FD_SET(STDIN_FILENO, &fd_sel);
                 FD_SET(fd[0], &fd_sel);
 
-                count = select(4, &fd_sel, NULL, NULL, NULL);
-                /* count = select(MAX(STDIN_FILENO, fd[0]), &fd_sel, NULL, NULL, NULL); */
+                count = select(MAX(fd[0], STDIN_FILENO) + 1, &fd_sel, NULL, NULL, NULL);
                 if (count == -1)
                         err_exit("select() error");
 
                 if (FD_ISSET(fd[0], &fd_sel)) {
                         if ((n = read(fd[0], buf, 10)) > 0 ) {
                                 write(STDOUT_FILENO, buf, strlen(buf));
-                        } 
+                        }
                         else if (n == -1 && errno != EAGAIN) {
                                 err_exit("Error reading child pipe");
-                        } 
+                        }
                 }
 
                 if (FD_ISSET(STDIN_FILENO, &fd_sel)) {
@@ -80,12 +78,12 @@ int main(int argc, char *argv[]) {
                         }
                         else if (n == -1 && errno != EAGAIN) {
                                 err_exit("Error reading stdin");
-                        } 
+                        }
                 }
         }
 
         close(fd[0]);
-        // shouldn't come to this part of code
+        // shouldn't come to this part of code, because of infinite loop
         exit(EXIT_FAILURE);
         return 0;
 }
