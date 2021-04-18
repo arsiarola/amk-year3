@@ -15,13 +15,13 @@ struct henkilo {
         char nimi[NAMELEN];
         int ika;
 };
-struct henkilo henkilo;
 
 void err_exit(const char *errmsg);
 
 int main(int argc, char *argv[]) {
         pid_t child;
         int fd;
+        struct henkilo henkilo;
         char *m_name = "/test123123";
 
         if ((fd = shm_open("test", O_RDWR | O_CREAT, 0600)) < 0)
@@ -36,20 +36,18 @@ int main(int argc, char *argv[]) {
                 err_exit("fork failed");
 
         if (child == 0) {
-                write(STDOUT_FILENO, "test\n", 5);
                 int sig;
                 sigset_t set;
-                sigemptyset(&set)
-
-                do {
-                        sigwait(&signal_set, &sig);
-                } while (sig != SIGUSR1);
-                write(STDOUT_FILENO, "Got sigusr1\n", 5);
-                sleep(5);
-
+                sigemptyset(&set);
+                sigaddset(&set, SIGUSR1);
+                sigwait(&set, &sig);
+                printf("CHILD received name: %s\n"
+                                "CHILD received age:  %d\n", 
+                                ((struct henkilo *)p)->nimi, ((struct henkilo *)p)->ika);
 
                 munmap(p, MSIZE); // poista omasta osoiteavaruudesta
                 shm_unlink(m_name); // poista KJ:n kirjanpidosta
+                sleep(5);
                 exit(EXIT_SUCCESS);
         }
 
@@ -57,31 +55,31 @@ int main(int argc, char *argv[]) {
         // remember to free name
         char name[NAMELEN];
         int age, result;
-        ssize_t len;
         printf("Enter a name: ");
         fgets(name, NAMELEN, stdin);
-        printf("name=%s\n", name);
+        name[strcspn(name, "\n")] = '\0'; // replace newline with terminating null
 
         // loop to make sure we get a number
-        do {
+        while (1) {
                 printf("Enter age: ");
-                result = scanf("%d", &age);
+                result = scanf("%d", &age); // result is number of successful conversions
+                if (result == 1) 
+                        break;
 
-                if (result == 0) {
-                        printf("Unable to get a number, try again\n");
-                        // clear stdin until a newline is found so we can use sscanf again
-                        while (fgetc(stdin) != '\n') { }
-                }
-        } while (result  <= 0);
-        printf("age=%d\n", age);
+                printf("Unable to get a number, try again\n");
+                // clear stdin until a newline is found so we can use sscanf again
+                while (fgetc(stdin) != '\n') { }
+        } 
 
-strcpy(henkilo.nimi, name);
+        printf("name=%s\n", name);
+        printf("age =%d\n", age);
+        strcpy(henkilo.nimi, name);
         henkilo.ika = age;
-        sleep(1);
+
+        memcpy((struct henkilo *) p, &henkilo, sizeof(struct henkilo));
         kill(child, SIGUSR1);
         munmap(p, MSIZE); // poista omasta osoiteavaruudesta
-                shm_unlink(m_name); // poista KJ:n kirjanpidosta
-                sleep(50);
+        shm_unlink(m_name); // poista KJ:n kirjanpidosta
         exit(EXIT_SUCCESS);
 }
 

@@ -10,7 +10,7 @@
 
 int push(char *teksti);
 int pop(char **teksti);
-void free_print();
+void pop_free_print();
 void err_exit(const char *errmsg);
 
 struct alkio {
@@ -20,22 +20,23 @@ struct alkio {
 struct alkio *pino = NULL; // osoittaa pinon päällimmäiseen alkioon
 
 int main(int argc, char *argv[]) {
+        char *line;
         size_t lines = 0;
         size_t linecap = 0;
         ssize_t linelen;
+        printf("Enter %d lines, which are going to be printed in reverse order\n", LINES);
         while(lines < LINES) {
-                line = NULL;
-                // getline will malloc itself
+                line = NULL; // getline will malloc this automatically
                 if ((linelen = getline(&line, &linecap, stdin)) == -1) {
-                        free_print(); // memory clean
+                        pop_free_print(); // memory clean
                         err_exit("getline error");
                 }
-                printf("%s\n", line);
                 push(line);
                 ++lines;
         }
 
-        free_print();
+        printf("Lines in reverse:\n");
+        pop_free_print();
         exit(EXIT_SUCCESS);
 }
 
@@ -55,6 +56,7 @@ int push(char *teksti) { // vie pinon päällimmäiseksi
 // mutta kun alkuperäisessä esimerkissä palautettiin
 // data tästä funktiosta, joten tehdään niin
 // pointterin palautus funktiosta vaatii tupla pointterin käyttämistä argumenttina
+// ja funktiota kutsuttaessa annetaan pointterin osoite käyttämällä &
 int pop(char **teksti) { // poista pinon päällimmäinen, palauta teksti parametrissa
         struct alkio *poistettava;
         if (pino == NULL) return -1;
@@ -66,7 +68,7 @@ int pop(char **teksti) { // poista pinon päällimmäinen, palauta teksti par
         return 0;
 }
 
-void free_print() {
+void pop_free_print() {
         char *teksti;
         while (pop(&teksti) != -1) {
                 printf("%s", teksti);
