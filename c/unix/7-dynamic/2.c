@@ -22,7 +22,7 @@ void err_exit(const char *errmsg);
 int main(int argc, char *argv[]) {
         pid_t child;
         int fd;
-        char *m_name "/test123123";
+        char *m_name = "/test123123";
 
         if ((fd = shm_open("test", O_RDWR | O_CREAT, 0600)) < 0)
                 err_exit("shm_open: opening shared memory failed");
@@ -36,17 +36,20 @@ int main(int argc, char *argv[]) {
                 err_exit("fork failed");
 
         if (child == 0) {
-                struct sigaction act;
-                act.sa_handler = sig_handler;
-                act.sa_flags = 0;
-                int signal_set, sig;
+                write(STDOUT_FILENO, "test\n", 5);
+                int sig;
+                sigset_t set;
+                sigemptyset(&set)
+
                 do {
-                sigwait(signal_set, sig);
+                        sigwait(&signal_set, &sig);
                 } while (sig != SIGUSR1);
+                write(STDOUT_FILENO, "Got sigusr1\n", 5);
+                sleep(5);
 
 
                 munmap(p, MSIZE); // poista omasta osoiteavaruudesta
-                shm_unlink(m_nimi); // poista KJ:n kirjanpidosta
+                shm_unlink(m_name); // poista KJ:n kirjanpidosta
                 exit(EXIT_SUCCESS);
         }
 
@@ -71,13 +74,18 @@ int main(int argc, char *argv[]) {
                 }
         } while (result  <= 0);
         printf("age=%d\n", age);
-        henkilo.nimi = name;
+
+strcpy(henkilo.nimi, name);
         henkilo.ika = age;
+        sleep(1);
+        kill(child, SIGUSR1);
+        munmap(p, MSIZE); // poista omasta osoiteavaruudesta
+                shm_unlink(m_name); // poista KJ:n kirjanpidosta
+                sleep(50);
         exit(EXIT_SUCCESS);
 }
 
 void err_exit(const char *errmsg) {
-
         perror(errmsg);
         exit(EXIT_FAILURE);
 }
