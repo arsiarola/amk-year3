@@ -9,13 +9,7 @@
 #include <fcntl.h>
 #include <semaphore.h>
 
-#define MSIZE 4096
-#define NAMELEN 80
-
-struct henkilo {
-        char nimi[NAMELEN];
-        int ika;
-};
+#include "sem.h"
 
 void err_exit(const char *errmsg);
 
@@ -23,37 +17,21 @@ int main(int argc, char *argv[]) {
         pid_t child;
         int fd;
         struct henkilo henkilo;
-        char *m_name = "/test123123";
 
-        if ((fd = shm_open("test", O_RDWR | O_CREAT, 0600)) < 0)
+        sem_t *sem = sem_open(SEM_NAME, O_CREAT, 0600, 1);
+        if (sem == SEM_FAILED)
+                err_exit("sem_open: opening semaphore failed");
+
+        if ((fd = shm_open(MEM_NAME, O_RDWR | O_CREAT, 0600)) < 0)
                 err_exit("shm_open: opening shared memory failed");
+
+        shm_unlink(MEM_NAME); // processes that havent closed shared memory can still use it
 
         ftruncate(fd, MSIZE);
         void *p = mmap(NULL, MSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
         if (p == MAP_FAILED)
                 err_exit("mmap: ongelma alueen liittämisessä osoiteavaruuteen");
 
-        if ((child = fork()) < 0)
-                err_exit("fork failed");
-
-        if (child == 0) {
-                int sig;
-                sigset_t set;
-                sigemptyset(&set);
-                sigaddset(&set, SIGUSR1);
-                sigwait(&set, &sig);
-                printf("CHILD received name: %s\n"
-                                "CHILD received age:  %d\n",
-                                ((struct henkilo *)p)->nimi, ((struct henkilo *)p)->ika);
-
-                munmap(p, MSIZE); // poista omasta osoiteavaruudesta
-                shm_unlink(m_name); // poista KJ:n kirjanpidosta
-                sleep(5);
-                exit(EXIT_SUCCESS);
-        }
-
-        // Parent
-        // remember to free name
         char name[NAMELEN];
         int age, result;
         printf("Enter a name: ");
@@ -76,11 +54,13 @@ int main(int argc, char *argv[]) {
         printf("age =%d\n", age);
         strcpy(henkilo.nimi, name);
         henkilo.ika = age;
-
         memcpy((struct henkilo *) p, &henkilo, sizeof(struct henkilo));
-        kill(child, SIGUSR1);
-        munmap(p, MSIZE); // poista omasta osoiteavaruudesta
-        shm_unlink(m_name); // poista KJ:n kirjanpidosta
+        sem_post(sem);
+
+        munmap(p, MSIZE);
+        sem_close(sem);
+        sem_unlink(SEM_NAME); // processes that havent closed semaphore can still use it
+
         exit(EXIT_SUCCESS);
 }
 
