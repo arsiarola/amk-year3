@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <semaphore.h>
 
-#include "sem_read.h"
+#include "sem.h"
 
 void err_exit(const char *errmsg);
 
@@ -18,45 +18,42 @@ int main(int argc, char *argv[]) {
         int fd;
         struct henkilo henkilo;
 
-        sem_t *sem_read = sem_open(SEM_READ_NAME, O_CREAT | O_EXCL, 0660, 0);
-        if (sem_read == SEM_FAILED) {
-                err_exit("sem_open: opening semaphore failed");
-        }
-
-        sem_t *sem_write = sem_open(SEM_WRITE_NAME, O_CREAT | O_EXCL, 0660, 0);
-        if (sem_read == SEM_FAILED) {
-                err_exit("sem_open: opening semaphore failed");
-        }
-
-        if ((fd = shm_open(MEM_NAME, O_RDWR | O_CREAT, 0660)) < 0) {
-                err_exit("shm_open: opening shared memory failed");
-        }
-
-        ftruncate(fd, MSIZE);
-        void *p = mmap(NULL, MSIZE, PROT_READ|PROT_WRITE, MAP_SHARED, fd, 0);
-
-        if (p == MAP_FAILED) {
-                err_exit("mmap: ongelma alueen liittämisessä osoiteavaruuteen");
-        }
-
-        struct henkilo henkilo;
+#include "create_vars.h"
+        char name[NAMELEN];
+        int age, result;
         while (1) {
-                sem_wait(sem_write);
-                henkilo = *(struct henkilo *)p;
-                if (henkilo == NULL) {
+                printf("Enter a name: ");
+                fgets(name, NAMELEN, stdin);
+                name[strcspn(name, "\n")] = '\0'; // replace newline with terminating null
+                strcpy(henkilo.nimi, name);
+                if (name[0] == '\0')
                         break;
-                }
-                printf("CHILD received name: %s\n"
-                                "CHILD received age:  %d\n",
-                                henkilo.nimi, henkilo.ika);
-                sem_post(sem_read);
-        }
 
-        munmap(p, MSIZE); // poista omasta osoiteavaruudesta
+                // loop to make sure we get a number
+                while (1) {
+                        printf("Enter age: ");
+                        result = scanf("%d", &age); // result is number of successful conversions
+                        // clear stdin until a newline is found so stdin can be used again
+                        while (fgetc(stdin) != '\n') { }
+                        if (result == 1)
+                                break;
+
+                        printf("Unable to get a number, try again\n");
+                }
+                henkilo.ika = age;
+                memcpy((struct henkilo *) p, &henkilo, sizeof(struct henkilo));
+                sem_post(sem_write);
+                sem_wait(sem_read);
+        }
+        memcpy((struct henkilo *) p, &henkilo, sizeof(struct henkilo));
+        sem_post(sem_write);
+
+        munmap(p, MSIZE);
         sem_close(sem_read);
-        sem_unlink(SEM_NAME); // processes that havent closed semaphore can still use it
-        shm_unlink(MEM_NAME); // processes that havent closed shared memory can still use it
-        sleep(5);
+        sem_close(sem_write);
+        sem_unlink(SEM_WRITE_NAME);
+        sem_unlink(SEM_READ_NAME);
+
         exit(EXIT_SUCCESS);
 }
 
