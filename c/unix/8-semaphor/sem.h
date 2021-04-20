@@ -3,7 +3,8 @@
 
 #define MSIZE 4096
 #define NAMELEN 80
-#define SEM_NAME "/sem123123"
+#define SEM_WRITE_NAME "/sem_write_8-2"
+#define SEM_READ_NAME  "/sem_read_8-2"
 #define MEM_NAME "/mem123123"
 
 struct henkilo {

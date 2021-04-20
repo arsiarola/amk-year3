@@ -9,7 +9,7 @@
 #include <fcntl.h>
 #include <semaphore.h>
 
-#include "sem.h"
+#include "sem_read.h"
 
 void err_exit(const char *errmsg);
 
@@ -18,14 +18,17 @@ int main(int argc, char *argv[]) {
         int fd;
         struct henkilo henkilo;
 
-        sem_t *sem = sem_open(SEM_NAME, O_CREAT, 0600, 1);
-        if (sem == SEM_FAILED) {
+        sem_t *sem_read = sem_open(SEM_READ_NAME, O_CREAT | O_EXCL, 0660, 0);
+        if (sem_read == SEM_FAILED) {
                 err_exit("sem_open: opening semaphore failed");
         }
-        sem_unlink(SEM_NAME); // processes that havent closed semaphore can still use it
-        sem_wait(sem);
 
-        if ((fd = shm_open(MEM_NAME, O_RDWR | O_CREAT, 0600)) < 0) {
+        sem_t *sem_write = sem_open(SEM_WRITE_NAME, O_CREAT | O_EXCL, 0660, 0);
+        if (sem_read == SEM_FAILED) {
+                err_exit("sem_open: opening semaphore failed");
+        }
+
+        if ((fd = shm_open(MEM_NAME, O_RDWR | O_CREAT, 0660)) < 0) {
                 err_exit("shm_open: opening shared memory failed");
         }
 
@@ -36,13 +39,22 @@ int main(int argc, char *argv[]) {
                 err_exit("mmap: ongelma alueen liittämisessä osoiteavaruuteen");
         }
 
-        sem_wait(sem);
-        printf("CHILD received name: %s\n"
-                        "CHILD received age:  %d\n",
-                        ((struct henkilo *)p)->nimi, ((struct henkilo *)p)->ika);
+        struct henkilo henkilo;
+        while (1) {
+                sem_wait(sem_write);
+                henkilo = *(struct henkilo *)p;
+                if (henkilo == NULL) {
+                        break;
+                }
+                printf("CHILD received name: %s\n"
+                                "CHILD received age:  %d\n",
+                                henkilo.nimi, henkilo.ika);
+                sem_post(sem_read);
+        }
 
         munmap(p, MSIZE); // poista omasta osoiteavaruudesta
-        sem_close(sem);
+        sem_close(sem_read);
+        sem_unlink(SEM_NAME); // processes that havent closed semaphore can still use it
         shm_unlink(MEM_NAME); // processes that havent closed shared memory can still use it
         sleep(5);
         exit(EXIT_SUCCESS);
