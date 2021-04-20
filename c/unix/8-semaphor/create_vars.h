@@ -1,5 +1,6 @@
 #ifndef CREATE_VARS_H_
 #define CREATE_VARS_H_
+int fd;
 sem_t *sem_read = sem_open(SEM_READ_NAME, O_CREAT, 0660, 0);
 if (sem_read == SEM_FAILED) {
         err_exit("sem_open: opening read semaphore failed");

@@ -10,22 +10,21 @@
 #include <semaphore.h>
 
 #include "sem.h"
+#define MAX_PERSONS 5
 
 void err_exit(const char *errmsg);
 
-int main(int argc, char *argv[]) {
-        pid_t child;
-        int fd;
-        struct henkilo henkilo;
-
-#include "create_vars.h"
+int get_details(struct henkilo henkilot[MAX_PERSONS]) {
+        int age, result, cnt;
         char name[NAMELEN];
-        int age, result;
-        while (1) {
+        cnt = 0;
+
+        while (cnt < MAX_PERSONS) {
                 printf("Enter a name: ");
                 fgets(name, NAMELEN, stdin);
                 name[strcspn(name, "\n")] = '\0'; // replace newline with terminating null
-                strcpy(henkilo.nimi, name);
+                strncpy(henkilot[cnt].nimi, name, NAMELEN);
+                ++cnt;
                 if (name[0] == '\0')
                         break;
 
@@ -40,13 +39,29 @@ int main(int argc, char *argv[]) {
 
                         printf("Unable to get a number, try again\n");
                 }
-                henkilo.ika = age;
-                memcpy((struct henkilo *) p, &henkilo, sizeof(struct henkilo));
+                henkilot[cnt].ika = age;
+        }
+        return cnt;
+}
+
+int main(int argc, char *argv[]) {
+        pid_t child;
+
+#include "create_vars.h"
+        struct henkilo henkilot[MAX_PERSONS];
+        while (1) {
+                int cnt = get_details(henkilot);
+                printf("henkilot[0].nimi=%s\n", henkilot[0].nimi);
+                memcpy((int *)p, &cnt, sizeof(int));
+                memcpy((struct henkilo *)((int *)p + 1), henkilot, sizeof(struct henkilo) * cnt);
+                for (int i = 0; i < cnt; ++i) {
+                        struct henkilo henkilo = *(((struct henkilo *) ((int *)p + 1)) + cnt);
+                        printf("Writer received name: %s\n",henkilo.nimi);
+                        printf("Writer received age:  %d\n", henkilo.ika);
+                }
                 sem_post(sem_write);
                 sem_wait(sem_read);
         }
-        memcpy((struct henkilo *) p, &henkilo, sizeof(struct henkilo));
-        sem_post(sem_write);
 
         munmap(p, MSIZE);
         sem_close(sem_read);
