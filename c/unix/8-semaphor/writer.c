@@ -16,8 +16,9 @@ void err_exit(const char *errmsg);
 int main(int argc, char *argv[]) {
         pid_t child;
         int cnt;
-#include "create_vars.h"
         struct henkilo *henkilo;
+#include "create_vars.h"
+
         while (1) {
                 sem_wait(sem_write);
                 cnt = *(int *) p;
@@ -26,7 +27,7 @@ int main(int argc, char *argv[]) {
                         henkilo = (struct henkilo *) henkilo + i;
                         if (henkilo->nimi[0] == '\0') {
                                 // break here would only break out of the for loop, so use goto
-                                // could also use a bool variable and set it to true
+                                // could also use an exit bool variable and set it to true
                                 // or make the whole while(1) a function and then use return
                                 goto exit_loop;
                         }
@@ -38,11 +39,8 @@ int main(int argc, char *argv[]) {
 exit_loop:
         printf("Empty name received, exiting program\n");
 
-        munmap(p, MSIZE); // poista omasta osoiteavaruudesta
-        sem_close(sem_read);
-        sem_unlink(SEM_WRITE_NAME);
-        sem_unlink(SEM_READ_NAME);
-        shm_unlink(MEM_NAME);
+#include "close_vars.h"
+
         exit(EXIT_SUCCESS);
 }
 

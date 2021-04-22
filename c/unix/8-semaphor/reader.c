@@ -10,32 +10,79 @@
 #include <semaphore.h>
 
 #include "sem.h"
-#define MAX_PERSONS 5
+#define MAX_PERSONS (MSIZE / sizeof(struct henkilo) - sizeof(int))
 
+int get_details(struct henkilo henkilot[MAX_PERSONS]);
 void err_exit(const char *errmsg);
+
+int main(int argc, char *argv[]) {
+        pid_t child;
+        struct henkilo henkilot[MAX_PERSONS];
+        int cnt;
+#include "create_vars.h"
+
+        printf("memory  size    = %d\n", MSIZE);
+        printf("henkilo size    = %d\n", sizeof(struct henkilo));
+        printf("int     size    = %d\n", sizeof(int));
+        printf("maximum persons = %d\n", MAX_PERSONS);
+
+        while (1) {
+                cnt = get_details(henkilot);
+
+                // if user tries to send empty list, dont send it
+                if (cnt < 1) continue;
+
+                memcpy(p, &cnt, sizeof(int));
+                memcpy(p + sizeof(int), &henkilot, sizeof(struct henkilo) * cnt);
+                sem_post(sem_write);
+
+                // if last element is empty name that is the indication that user wants to stop
+                if (henkilot[cnt-1].nimi[0] == '\0') {
+                        printf("found null name\n");
+                        break;
+                }
+
+                sem_wait(sem_read);
+        }
+
+        printf("Exiting program\n");
+
+#include "close_vars.h"
+
+        exit(EXIT_SUCCESS);
+}
 
 int get_details(struct henkilo henkilot[MAX_PERSONS]) {
         char name[NAMELEN];
         int age, result, cnt = 0;
 
+        printf("Send current name list by giving empty name (empty list won't be sent)\n");
+        printf("Stop the prgram with Ctrl-D\n");
         while (cnt < MAX_PERSONS) {
-                printf("Enter a name: ");
+                printf("Enter a name : ");
+
+                // if user presses Ctrl-D put last element as empty name
                 if (fgets(name, NAMELEN, stdin) == NULL) {
-                        printf("got null\n");
                         henkilot[cnt].nimi[0] = '\0';
                         ++cnt;
                         break;
                 }
+
                 name[strcspn(name, "\n")] = '\0'; // replace newline with terminating null
+
+                // User gave empty string so dont append it to the list but just break the loop
                 if (name[0] == '\0') {
                         break;
                 }
+
                 // loop to make sure we get a number
                 while (1) {
                         printf("Enter age: ");
                         result = scanf("%d", &age); // result is number of successful conversions
+
                         // clear stdin until a newline is found so stdin can be used again
                         while (fgetc(stdin) != '\n') { }
+
                         if (result == 1)
                                 break;
 
@@ -47,40 +94,6 @@ int get_details(struct henkilo henkilot[MAX_PERSONS]) {
                 ++cnt;
         }
         return cnt;
-}
-
-int main(int argc, char *argv[]) {
-        pid_t child;
-
-#include "create_vars.h"
-        struct henkilo henkilot[MAX_PERSONS];
-        int cnt;
-        struct henkilo *henkilo;
-        while (1) {
-                cnt = get_details(henkilot);
-                for (int i = 0; i < cnt; ++i) {
-                        printf("henkilot[%d].nimi: %s\n", i, henkilot[i].nimi);
-                        printf("henkilot[%d].ika   %d\n", i, henkilot[i].ika);
-                }
-                memcpy(p, &cnt, sizeof(int));
-                cnt = * (int *) p;
-                memcpy(p + sizeof(int), &henkilot, sizeof(struct henkilo) * cnt);
-                sem_post(sem_write);
-                if (henkilot[cnt-1].nimi[0] == '\0') {
-                        printf("found null name\n");
-                        break;
-                }
-                sem_wait(sem_read);
-        }
-
-        munmap(p, MSIZE);
-        sem_close(sem_read);
-        sem_close(sem_write);
-        shm_unlink(MEM_NAME);
-        sem_unlink(SEM_WRITE_NAME);
-        sem_unlink(SEM_READ_NAME);
-
-        exit(EXIT_SUCCESS);
 }
 
 void err_exit(const char *errmsg) {
