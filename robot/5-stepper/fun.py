@@ -1,6 +1,5 @@
 def byte_to_description(b):
     switch = {
-        range(0, 256): "Value byte", # 0-255 8-bit value
         b'R': "step on the X-axis",
         b'L': "step on the X-axis (opposite direction)",
         b'B': "step on the Y-axis",
