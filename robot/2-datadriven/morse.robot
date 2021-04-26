@@ -24,6 +24,7 @@ Morse test
  	Set Speed          ${speed}
     Send text          ${text}
     ${out} =           Convert input to output    ${text}
+    Speed should be    ${speed}
  	Text should be     ${out}
 
 Convert input to output

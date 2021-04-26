@@ -18,9 +18,18 @@ capture.write(bytes(chr(1), "utf-8"))
 
 capture.write(bytes('O', "utf-8"))
 
+def get_1byte_resp():
+    c = capture.read()
+    while chr(ord(c)) in two_bytes:
+        print(c, ": ", byte_to_description(c))
+        c = capture.read()
+        print(c, ": ", ord(c))
+        c = capture.read()
+    return c
+
 def test_direction(dir):
-    if dir == "right":  dir = True
-    elif dir == "left": dir = False
+    if dir == "right":  dir = False
+    elif dir == "left": dir = True
     else:
         print("Invalid argument in test_direction(), give \"right\" or \"left\" string")
         return
@@ -28,11 +37,6 @@ def test_direction(dir):
     capture.write(bytes('j', "utf-8"))
     capture.write(bytes('J' if dir else 'L', "utf-8"))
     while True:
-        c = capture.read()
-        print(c, ": ", byte_to_description(c))
-        if chr(ord(c)) in two_bytes:
-            c = capture.read()
-            print(c, ": ", ord(c))
 
         elif chr(ord(c)) in closed_limits:
             break
