@@ -5,7 +5,7 @@
 #include <errno.h>
 #include <pthread.h>
 
-#define SIZE 5
+#define SIZE 10000
 int array[SIZE] = { 0 };
 
 pthread_mutex_t raffling    = PTHREAD_MUTEX_INITIALIZER;
@@ -30,6 +30,8 @@ void *raffle(void *arg) {
 }
 
 void *calc_mean(void *arg) {
+        // 10000 * 999 ≈ 1 million, so normal 32-bit int has plenty of
+        // space to store the total
         int total;
         while(1) {
                 pthread_mutex_lock(&calculating);
