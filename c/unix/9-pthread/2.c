@@ -5,10 +5,11 @@
 #include <pthread.h>
 
 void err_exit(const char *errmsg);
+typedef unsigned long long int fact_type;
 
 void *factorial(void *arg) {
         unsigned int val = *(unsigned int *) arg;
-        unsigned int *ret = malloc(sizeof(unsigned int));
+        fact_type *ret = malloc(sizeof(fact_type));
         *ret = 1;
         for(unsigned int i = 2; i <= val; ++i) {
                 *ret *= i;
@@ -29,7 +30,8 @@ void *sum(void *arg) {
 
 int main(int argc, char *argv[]) {
         pthread_t tid1, tid2;
-        unsigned int val, *sum_pointer, *fact_pointer;
+        unsigned int val, *sum_pointer;
+        fact_type *fact_pointer;
 
         // loop to make sure we get a positive number
         while (1) {
@@ -53,7 +55,7 @@ int main(int argc, char *argv[]) {
                         break;
                 }
                 else {
-                        printf("Program doesn't accept negative numbers, try again\n");
+                        printf("Program doesn't accept non-positive numbers, try again\n");
                 }
 
         }
@@ -63,11 +65,11 @@ int main(int argc, char *argv[]) {
         pthread_create(&tid1, NULL, sum,       (void *)&val);
         pthread_create(&tid2, NULL, factorial, (void *)&val);
 
-        pthread_join(tid1, &sum_pointer);
+        pthread_join(tid1, (void *) &sum_pointer);
         printf("sum = %u\n", *sum_pointer);
 
-        pthread_join(tid2, &fact_pointer);
-        printf("factorial = %u\n", *fact_pointer);
+        pthread_join(tid2, (void *) &fact_pointer);
+        printf("factorial = %llu\n", *fact_pointer);
 
         free(sum_pointer);
         free(fact_pointer);

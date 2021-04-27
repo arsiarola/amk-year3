@@ -33,10 +33,10 @@ void *calc_mean(void *arg) {
         // 10000 * 999 ≈ 1 million, so normal 32-bit int has plenty of
         // space to store the total
         int total;
-        while(1) {
+        while (1) {
                 pthread_mutex_lock(&calculating);
                 total = 0;
-                for(int i = 0; i < SIZE; ++i) {
+                for (int i = 0; i < SIZE; ++i) {
                         // numbers were supposed to be 0-999, so even if
                         // one of them is negative, end the thread
                         if (array[i] == -1)
@@ -44,7 +44,7 @@ void *calc_mean(void *arg) {
 
                         total += array[i];
                 }
-                printf("mean = %d\n", total / SIZE);
+                printf("mean = %.3f\n", (float)(total / SIZE));
                 pthread_mutex_unlock(&raffling);
         }
 break_loop:

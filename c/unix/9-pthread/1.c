@@ -3,30 +3,38 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <pthread.h>
+#include <math.h>
+#include <string.h>
 
-#define SIZE 90
-int squares[SIZE];
+#define SIZE 9
+float squares[SIZE];
 
 void err_exit(const char *errmsg);
+
 void *square_add(void *arg) {
-        int i = *(int *) arg;
-        int val = i * i;
-        squares[i] = val;
+        sleep(1);
+        int i = (int) arg;
+        squares[i] = sqrt(i);
         pthread_exit(NULL);
 }
 
 int main(int argc, char *argv[]) {
-        pthread_t tid[SIZE];
+        // ainut tapa miten keksin että toimisi 100% ajasta oli memcpy
+        // avulla. Toimii vaikka threadissa on sleeppi ennen arg hakemista
+        // Joka ei toimisi jos välitettäisiin i:n osoite (void *)&i
 
-        for(int i = 0; i < SIZE; i++) {
-                squares[i] = i;
-                pthread_create(&tid[i], NULL, square_add, (void *)&squares[i]);
+        pthread_t tid[SIZE];
+        for(int i = 0; i < SIZE; ++i) {
+                /* memcpy(&squares[i], &i, sizeof(int)); */
+                /* pthread_create(&tid[i], NULL, square_add, (void *)&squares[i]); */
+                pthread_create(&tid[i], NULL, square_add, (void *)i);
         }
 
         for(int i = 0; i < SIZE; i++) {
                 pthread_join(tid[i], NULL);
-                printf("%d^2 = %d\n", i, squares[i]);
+                printf("√%d = %f\n", i, squares[i]);
         }
+
         return 0;
 }
 
