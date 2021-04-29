@@ -15,13 +15,14 @@ pthread_rwlock_t rwlock            = PTHREAD_RWLOCK_INITIALIZER;
 void err_exit(const char *errmsg);
 
 void *raffle(void *arg) {
-        for(int j = 0; j < 10; ++j) {
+        for(int j = 0; j < 2; ++j) {
                 pthread_rwlock_wrlock(&rwlock);
                 for(int i = 0; i < SIZE; ++i) {
                         array[i] = rand() % 1000;
                 }
+                printf("\n");
                 pthread_rwlock_unlock(&rwlock);
-                pthread_mutex_unlock(&first_raffle_done);
+                pthread_mutex_unlock(&first_raffle_done); // starts the reader threads creation
                 sleep(2);
         }
 
@@ -51,7 +52,7 @@ void *calc_mean(void *arg) {
 
                 mean = total / (float)SIZE;
                 if (mean != prev_mean) {
-                        printf("mean = %.3f\n", mean);
+                        printf("mean = %f\n", mean);
                         prev_mean = mean;
                 }
 
